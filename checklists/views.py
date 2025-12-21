@@ -286,7 +286,21 @@ def submission_list(request):
     ).select_related('scan').order_by('-created_at')
     
     return render(request, 'checklists/submission_list.html', {'submissions': submissions})
-    
+
+# checklists/views.py
+def view_checklist(request):
+    firm = request.user.firmprofile
+    # Fetch items for the active standard
+    checklist_items = ComplianceItem.objects.filter(
+        firm=firm, 
+        standard_name=firm.active_standard
+    )
+
+    context = {
+        'items': checklist_items,
+        'mode': firm.scan_mode, # 'simple' or 'detailed'
+    }
+    return render(request, 'checklists/display.html', context)    
     
 
 

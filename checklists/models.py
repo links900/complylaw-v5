@@ -99,6 +99,8 @@ class ChecklistSubmission(models.Model):
                 'percentage': round((completed / total * 100), 0) if total > 0 else 0
             }
         return stats
+        
+        
 
 class ChecklistResponse(models.Model):
     # This must point to the ComplianceReport model in the reports app

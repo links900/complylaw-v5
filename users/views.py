@@ -12,6 +12,7 @@ from allauth.account.views import SignupView
 from .models import FirmProfile, UserAccount
 from .forms import FirmSettingsForm, FirmProfileForm # <--- Updated Imports
 import json
+import os
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.utils import timezone as django_timezone
@@ -58,14 +59,11 @@ class FirmSettingsView(LoginRequiredMixin, UpdateView):
     form_class = FirmSettingsForm
     template_name = 'users/firm_settings.html'
     success_url = reverse_lazy('users:firm_settings')
-
+    
+    
     def get_object(self):
+        # Access the profile linked to the user
         return self.request.user.firmprofile
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['firm'] = self.get_object() 
-        return context
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -75,9 +73,39 @@ class FirmSettingsView(LoginRequiredMixin, UpdateView):
             return redirect("users:firm_wizard")
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        # Get base context (this includes the 'form' and 'object')
+        context = super().get_context_data(**kwargs)
+        
+        # Explicitly set 'firm' for the template
+        context['firm'] = self.get_object() 
+
+        # --- DYNAMIC FILE PARSING ---
+        # Path: project_root/checklists/management/commands/
+        commands_path = os.path.join(settings.BASE_DIR, 'checklists', 'management', 'commands')
+        
+        standards = []
+        if os.path.exists(commands_path):
+            for filename in os.listdir(commands_path):
+                # Filter for your seed files
+                if filename.startswith("seed_") and filename.endswith(".py"):
+                    # Transform 'seed_gdpr.py' -> 'GDPR'
+                    display_name = filename.replace("seed_", "").replace(".py", "").upper()
+                    standards.append(display_name)
+        
+        # Fallback to GDPR if no files are found
+        if not standards:
+            standards = ['GDPR']
+            
+        context['available_standards'] = sorted(list(set(standards)))
+        return context
+
     def form_valid(self, form):
         messages.success(self.request, "Settings updated successfully.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        # Trigger the checklist sync for the new active standard
+        self.object.sync_compliance_checklist()
+        return response
 
     def form_invalid(self, form):
         messages.error(self.request, "Please correct the errors below.")

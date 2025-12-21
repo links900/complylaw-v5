@@ -35,6 +35,20 @@ class FirmProfile(models.Model):
         related_name='firmprofile'
     )
     
+    SCAN_MODE_CHOICES = [
+        ('simple', 'Simple'),
+        ('detailed', 'Detailed'),
+    ]
+    scan_mode = models.CharField(
+        max_length=10, 
+        choices=SCAN_MODE_CHOICES, 
+        default='simple'
+    )
+    active_standard = models.CharField(
+        max_length=100, 
+        default='GDPR'  # Default as requested
+    )
+    
     # New Localization & Status
     timezone = models.CharField(max_length=100, default='UTC')
     currency = models.CharField(max_length=3, default='USD')
@@ -67,6 +81,20 @@ class FirmProfile(models.Model):
     def set_preferences(self, value):
         self._preferences = json.dumps(value, cls=DjangoJSONEncoder)
     preferences = property(get_preferences, set_preferences)
+    
+    def sync_compliance_checklist(self):
+        """
+        Dynamically calls the seed command based on the active_standard.
+        e.g., if active_standard is 'GDPR', it calls 'seed_gdpr'
+        """
+        command_name = f"seed_{self.active_standard.lower()}"
+        try:
+            # We pass the firm ID so the seed script knows which firm to populate
+            call_command(command_name, firm_id=self.id)
+            return True
+        except Exception as e:
+            print(f"Error seeding {command_name}: {e}")
+            return False
 
 class UserAccount(AbstractUser):
     ROLE_CHOICES = [('owner', 'Owner'), ('viewer', 'Viewer')]

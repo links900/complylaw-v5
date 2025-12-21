@@ -1,7 +1,9 @@
 # users/forms.py
 import re
 import pytz
+import os
 from django import forms
+from django.conf import settings
 from .models import FirmProfile
 
 class FirmSettingsForm(forms.ModelForm):
@@ -19,40 +21,60 @@ class FirmSettingsForm(forms.ModelForm):
         fields = [
             'firm_name', 'domain', 'email', 'phone', 'address', 'logo', 
             'subscription_tier', 'timezone', 'currency', 'date_format',
-            'selected_frameworks', 'audit_rigor', 'retention_days', 'data_region'
+            'selected_frameworks', 'audit_rigor', 'retention_days', 'data_region',
+            'scan_mode', 'active_standard'
         ]
 
     def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+        
+        # 1. DYNAMICALLY LOAD STANDARDS FROM FILESYSTEM
+        commands_path = os.path.join(settings.BASE_DIR, 'checklists', 'management', 'commands')
+        dynamic_choices = []
+        
+        if os.path.exists(commands_path):
+            for filename in os.listdir(commands_path):
+                if filename.startswith("seed_") and filename.endswith(".py"):
+                    # Transform 'seed_gdpr.py' -> 'GDPR'
+                    val = filename.replace("seed_", "").replace(".py", "").upper()
+                    dynamic_choices.append((val, val))
+        
+        # Fallback to GDPR if no files found
+        if not dynamic_choices:
+            dynamic_choices = [('GDPR', 'GDPR')]
             
-            # High-contrast international grade styling
-            # Border is slate-300 (visible), background is slate-50 (subtle grey)
-            standard_css = (
-                "w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 " # Added px-4 here
-                "text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 "
-                "transition-all placeholder:text-slate-400 font-medium shadow-sm"
-            )
-                        
-            file_css = (
-                "block w-full text-sm text-slate-500 "
-                "file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 "
-                "file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 "
-                "hover:file:bg-indigo-100 transition-all"
-            )
+        # Update the choices for the active_standard field to allow validation
+        if 'active_standard' in self.fields:
+            self.fields['active_standard'].choices = sorted(dynamic_choices)
 
-            for name, field in self.fields.items():
-                # Apply the appropriate CSS based on field type
-                if name == 'logo':
-                    field.widget.attrs.update({'class': file_css})
-                else:
-                    field.widget.attrs.update({'class': standard_css})
-                
-                # Special handling for disabled fields (like subscription)
-                if name == 'subscription_tier':
-                    field.disabled = True
-                    field.widget.attrs.update({
-                        'class': standard_css + " bg-slate-100 cursor-not-allowed border-slate-200 text-slate-500"
-                    })
+        # 2. APPLY STYLING
+        # High-contrast international grade styling
+        standard_css = (
+            "w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 "
+            "text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 "
+            "transition-all placeholder:text-slate-400 font-medium shadow-sm"
+        )
+                    
+        file_css = (
+            "block w-full text-sm text-slate-500 "
+            "file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 "
+            "file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 "
+            "hover:file:bg-indigo-100 transition-all"
+        )
+
+        for name, field in self.fields.items():
+            # Apply the appropriate CSS based on field type
+            if name == 'logo':
+                field.widget.attrs.update({'class': file_css})
+            else:
+                field.widget.attrs.update({'class': standard_css})
+            
+            # Special handling for disabled fields
+            if name == 'subscription_tier':
+                field.disabled = True
+                field.widget.attrs.update({
+                    'class': standard_css + " bg-slate-100 cursor-not-allowed border-slate-200 text-slate-500"
+                })
                     
     def clean_domain(self):
         domain = self.cleaned_data.get('domain', '').strip().lower()
@@ -66,9 +88,6 @@ class FirmSettingsForm(forms.ModelForm):
         if FirmProfile.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("Email already in use.")
         return email
-
-
-    
 
 # Set the alias so the Wizard view doesn't break
 FirmProfileForm = FirmSettingsForm
