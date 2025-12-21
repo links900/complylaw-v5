@@ -15,6 +15,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.utils import timezone as django_timezone
+
 import secrets
 import string
 import logging
@@ -54,12 +55,17 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
 # -----------------------------
 class FirmSettingsView(LoginRequiredMixin, UpdateView):
     model = FirmProfile
-    form_class = FirmSettingsForm  # <--- Correct form class
+    form_class = FirmSettingsForm
     template_name = 'users/firm_settings.html'
     success_url = reverse_lazy('users:firm_settings')
 
-    def get_object(self, queryset=None):
+    def get_object(self):
         return self.request.user.firmprofile
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['firm'] = self.get_object() 
+        return context
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:

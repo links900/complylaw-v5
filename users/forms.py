@@ -17,8 +17,9 @@ class FirmSettingsForm(forms.ModelForm):
     class Meta:
         model = FirmProfile
         fields = [
-            'firm_name', 'email', 'domain', 'phone', 'address', 
-            'logo', 'subscription_tier', 'timezone', 'currency', 'date_format'
+            'firm_name', 'domain', 'email', 'phone', 'address', 'logo', 
+            'subscription_tier', 'timezone', 'currency', 'date_format',
+            'selected_frameworks', 'audit_rigor', 'retention_days', 'data_region'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -27,12 +28,11 @@ class FirmSettingsForm(forms.ModelForm):
             # High-contrast international grade styling
             # Border is slate-300 (visible), background is slate-50 (subtle grey)
             standard_css = (
-                "w-full rounded-lg border-slate-300 bg-slate-50/50 text-slate-900 text-sm py-2.5 "
-                "placeholder:text-slate-400 "
-                "focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white "
-                "transition-all duration-200 shadow-sm"
+                "w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 " # Added px-4 here
+                "text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 "
+                "transition-all placeholder:text-slate-400 font-medium shadow-sm"
             )
-            
+                        
             file_css = (
                 "block w-full text-sm text-slate-500 "
                 "file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 "

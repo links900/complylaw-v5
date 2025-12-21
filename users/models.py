@@ -46,7 +46,19 @@ class FirmProfile(models.Model):
     subscription_tier = models.CharField(max_length=20, choices=SUBSCRIPTION_CHOICES, default='trial')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
+    # Stores selected frameworks like ['iso27001', 'gdpr']
+    selected_frameworks = models.JSONField(default=list, blank=True) # Stores ['iso27001', 'gdpr']
+    audit_rigor = models.CharField(
+        max_length=20, 
+        choices=[('simple', 'Simple'), ('detailed', 'Detailed')],
+        default='simple'
+    )
+    
+    retention_days = models.IntegerField(default=365, help_text="Number of days to keep audit logs")
+    data_region = models.CharField(max_length=10, default='us')
+    
+   
     def __str__(self):
         return self.firm_name
 
@@ -67,3 +79,4 @@ class UserAccount(AbstractUser):
 
 auditlog.register(FirmProfile)
 auditlog.register(UserAccount)
+

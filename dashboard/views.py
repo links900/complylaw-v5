@@ -27,7 +27,14 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        firm = getattr(self.request.user, 'firm', None)
+        user = self.request.user
+        
+        # Check the ForeignKey field first
+        firm = user.firm
+        
+        # If ForeignKey is empty, try the OneToOne reverse relationship safely
+        if not firm:
+            firm = getattr(user, 'firmprofile', None)
         
         if firm:
             # 1. Get Automated Scans
@@ -57,6 +64,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
 
             context.update({
                 'last_scan': last_scan,
+                'firm': firm,
                 'recent_scans': recent_scans,
                 'top_priority_issue': top_issue,
                 'submission': last_sub,
@@ -67,6 +75,7 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
             })
         else:
             context.update({
+                'firm': None,
                 'recent_scans': [],
                 'unread_alerts': 0,
                 'completion_percentage': 0,
