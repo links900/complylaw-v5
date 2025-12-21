@@ -53,7 +53,8 @@
             
             <div id="scan-progress" 
                  hx-get="{% url 'scanner:scan_status_partial' scan.scan_id %}" 
-                 hx-trigger="refreshStatus from:body" 
+                 //hx-trigger="refreshStatus from:body" 
+				 hx-trigger="refreshStatus from:body, every 5s [window.modalTriggered == false]"
                  hx-swap="outerHTML">
                 {% include 'scanner/partials/scan_progress.html' %}
             </div>
@@ -128,7 +129,7 @@
 						document.body.dispatchEvent(new Event('refreshStatus'));
 						
 						// Trigger the checklist modal dynamically for this specific scan
-						const modalUrl = "{% url 'scanner:checklist_modal' scan.id %}";
+						const modalUrl = "{% url 'scanner:checklist_modal' scan.scan_id %}";
 						htmx.ajax('GET', modalUrl, { 
 							target: 'body', 
 							swap: 'beforeend' 
