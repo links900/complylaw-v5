@@ -1,11 +1,40 @@
 <!-- templates/scanner/scan_status.html -->
-{% extends "base.html" %}
-{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Progress - ComplyLaw</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
 
-{% block title %}Scanner Dashboard{% endblock %}
-
-{% block content %}
-<div class="max-w-7xl mx-auto p-6">
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-black text-blue-600 tracking-tighter">ComplyLaw</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 font-medium text-sm">Dashboard</a>
+                    <a href="/scanner/list/" class="text-gray-700 hover:text-blue-600 font-medium text-sm">Scans</a>
+                    <form method="post" action="/accounts/logout/" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <main class="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl py-12 px-6 shadow-inner">
@@ -116,5 +145,5 @@
         connectWebSocket();
     })();
     </script>
-</div>
-{% endblock %}
+</body>
+</html>
