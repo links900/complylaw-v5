@@ -1,0 +1,39 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h2>Select Compliance Framework to Apply</h2>
+        <p>You are adding a compliance checklist to the following reports:</p>
+        <ul>
+            {% for report in reports %}
+                <li><strong>{{ report.scan.domain }}</strong> (ID: {{ report.pk }})</li>
+            {% endfor %}
+        </ul>
+
+        <form method="post">
+            {% csrf_token %}
+            {% for report in reports %}
+                <input type="hidden" name="_selected_action" value="{{ report.pk }}" />
+            {% endfor %}
+            <input type="hidden" name="action" value="bulk_add_standards" />
+
+            <div style="background: #f8f9fa; padding: 20px; border: 1px solid #ddd; border-radius: 4px;">
+                <label for="standard_name"><strong>Choose Framework:</strong></label>
+                <select name="standard_name" id="standard_name" required style="padding: 5px; margin-left: 10px;">
+                    <option value="">-- Select Standard --</option>
+                    {% for standard in standards %}
+                        <option value="{{ standard }}">{{ standard }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="submit-row" style="margin-top: 20px; text-align: left; background: none; border: none;">
+                <input type="submit" name="apply" value="Apply Framework Controls" class="default" style="background: #1a5fb4;" />
+                <a href="#" onclick="window.history.back();" class="button cancel-link">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @bottom-left { content: "Ref: {{ scan.scan_id }}"; font-size: 8pt; color: #999; }
+            @bottom-right { content: "Page " counter(page); font-size: 8pt; }
+        }
+        body { font-family: 'Helvetica', sans-serif; color: #333; line-height: 1.4; }
+        .border-box { border: 2px solid #1a5fb4; padding: 20px; text-align: center; margin-bottom: 50px; }
+        .header-title { font-size: 28pt; font-weight: bold; color: #1a5fb4; text-transform: uppercase; }
+        
+        .partial { color: #f39c12; }
+		.pending { color: #7f8c8d; }
+		.yes { color: #27ae60; font-weight: bold; }
+		.no { color: #c0392b; font-weight: bold; }
+
+		/* Summary Grid */
+        .score-grid { display: flex; justify-content: space-between; margin: 30px 0; }
+        .score-item { text-align: center; border: 1px solid #ddd; padding: 15px; width: 30%; border-radius: 5px; }
+        .big-number { font-size: 24pt; font-weight: bold; color: #1a5fb4; }
+		
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 9pt; }
+        th { background-color: #f2f2f2; border: 1px solid #ccc; padding: 8px; text-align: left; }
+		tr { page-break-inside: avoid; }
+        td { border: 1px solid #ccc; padding: 8px; }
+        .status-badge { font-weight: bold; padding: 2px 5px; border-radius: 3px; }
+        .COMPLIANT { color: #27ae60; }
+        .NON_COMPLIANT { color: #c0392b; }
+		
+		.status-badge.yes { color: #27ae60; font-weight: bold; }
+        .status-badge.no { color: #c0392b; font-weight: bold; }
+        .status-badge.partial { color: #f39c12; font-weight: bold; }
+        .status-badge.pending { color: #7f8c8d; font-weight: normal; }
+
+		
+        /* Verification */
+        .verification-footer { margin-top: 50px; border-top: 1px solid #eee; padding-top: 20px; font-size: 8pt; }
+    </style>
+</head>
+<body>
+
+    <div class="border-box">
+        <div class="header-title">Audit Report</div>
+        <p style="font-size: 14pt;">Information Security & Regulatory Compliance Assessment</p>
+        <hr>
+        <p><strong>Entity:</strong> {{ scan.domain }}</p>
+        <p><strong>Standards:</strong> SOC2, GDPR, HIPAA, CMMC, NIST CSF</p>
+        <p><strong>Report Issued:</strong> {{ report.generated_at|date:"d M Y" }}</p>
+    </div>
+
+    <h3>Executive Scorecard</h3>
+    <div class="score-grid">
+        <div class="score-item">
+            <div class="big-number">{{ compliance_index|floatformat:1 }}%</div>
+            <div>Compliance Index</div>
+        </div>
+        <div class="score-item">
+            <div class="big-number">{{ legal_exposure }}</div>
+            <div>Legal Exposure (Risk)</div>
+        </div>
+        <div class="score-item">
+            <div class="big-number">{{ scan.grade }}</div>
+            <div>Final Rating</div>
+        </div>
+    </div>
+
+    <div style="page-break-before: always;"></div>
+    <h3>I. Procedural Control Ledger (Manual Audit)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Standard</th>
+                <th>Control Ref</th>
+                <th>Requirement</th>
+                <th>Status</th>
+                <th>Auditor Verification</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in responses %}
+            <tr>
+                <td>{{ r.template.standard }}</td>
+                <td>{{ r.template.code }}</td>
+                <td><strong>{{ r.template.title }}</strong><br><small>{{ r.template.description|truncatechars:100 }}</small></td>
+                <td class="status-badge {{ r.status }}">{{ r.status }}</td>
+                <td>{{ r.comment|default:"Verified via manual review." }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>II. Automated Security Findings</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Module</th>
+                <th>Standard/Article</th>
+                <th>Technical Finding</th>
+                <th>Risk Level</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in tech_findings %}
+            <tr>
+                <td>{{ f.module|default:"Technical" }}</td>
+                <td>{{ f.gdpr_article }}</td>
+                <td>{{ f.title }}</td>
+                <td style="color: {% if f.risk_level == 'high' %}red{% else %}orange{% endif %};">
+                    {{ f.risk_level|upper }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="verification-footer">
+        <p><strong>Digital Integrity Signature:</strong> {{ signature }}</p>
+        <p>This document is cryptographically linked to Scan ID {{ scan.scan_id }}. Verify at:</p>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=https://{{ host }}/reports/verify-report/?report_id={{ scan.scan_id|slice:':16' }}">
+    </div>
+
+</body>
+</html>

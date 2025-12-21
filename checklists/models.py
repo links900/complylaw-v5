@@ -21,6 +21,14 @@ class ChecklistTemplate(models.Model):
     weight = models.FloatField(default=1.0)
     requires_evidence = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
+    how_to_check = models.TextField(
+        blank=True, 
+        help_text="Detailed instructions for the auditor on how to verify this control."
+    )
+    recommendations = models.TextField(
+        blank=True, 
+        help_text="Guidance on how to fix the issue if the control is not compliant."
+    )
 
     class Meta:
         unique_together = ('standard', 'code')
@@ -93,6 +101,18 @@ class ChecklistSubmission(models.Model):
         return stats
 
 class ChecklistResponse(models.Model):
+    # This must point to the ComplianceReport model in the reports app
+    report = models.ForeignKey(
+        'reports.ComplianceReport', 
+        on_delete=models.CASCADE, 
+        related_name='checklist_responses'
+    )
+    template = models.ForeignKey(
+        'ChecklistTemplate', 
+        on_delete=models.CASCADE,
+        related_name='responses' # Added related_name to solve the E304 clash
+    )
+    
     # Added 'pending' as default to match your Wizard logic
     STATUS_CHOICES = [
         ("yes", "Yes"), 

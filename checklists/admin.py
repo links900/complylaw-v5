@@ -1,7 +1,7 @@
+#checklists/admin.py
+
 from django.contrib import admin
 from .models import ChecklistTemplate, ChecklistSubmission, ChecklistResponse, EvidenceFile
-from django.contrib import admin
-from .models import ScanResult
 
 @admin.register(ChecklistTemplate)
 class ChecklistTemplateAdmin(admin.ModelAdmin):
@@ -13,7 +13,9 @@ class ChecklistTemplateAdmin(admin.ModelAdmin):
 class ChecklistResponseInline(admin.TabularInline):
     model = ChecklistResponse
     extra = 0
-    readonly_fields = ('template', 'status', 'comment')
+    # Keep this inline simple for the Submission view
+    fields = ('template', 'status', 'comment')
+    readonly_fields = ('template',)
 
 @admin.register(ChecklistSubmission)
 class ChecklistSubmissionAdmin(admin.ModelAdmin):
@@ -24,14 +26,3 @@ class ChecklistSubmissionAdmin(admin.ModelAdmin):
 @admin.register(EvidenceFile)
 class EvidenceFileAdmin(admin.ModelAdmin):
     list_display = ('filename', 'response', 'uploaded_by', 'uploaded_at')
-    
-    
-
-
-@admin.register(ScanResult)
-class ScanResultAdmin(admin.ModelAdmin):
-    # This makes the UUID and key info visible in the list view
-    list_display = ('id', 'domain', 'firm', 'scan_date', 'status', 'progress')
-    list_filter = ('status', 'scan_date')
-    search_fields = ('domain', 'id')
-    readonly_fields = ('id', 'scan_date') # IDs are read-only

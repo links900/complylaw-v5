@@ -2,6 +2,7 @@
 
 import io
 import json
+import uuid
 from django.views.generic import ListView, View
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
@@ -10,6 +11,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
 from django.db import transaction
+from reports.models import ComplianceReport
 
 # Model Imports
 from scanner.models import ScanResult  
@@ -39,17 +41,21 @@ class ChecklistWizardView(ListView):
     def get_queryset(self):
         scan_id_str = self.kwargs.get('scan_id')
         scan_obj = get_object_or_404(ScanResult, scan_id=scan_id_str)
-        
 
-        # 1. Check if submission exists first to avoid unnecessary transaction noise
         submission = ChecklistSubmission.objects.filter(scan=scan_obj).first()
 
-        # 2. If it doesn't exist, create it and its associated responses atomically
         if not submission:
             with transaction.atomic():
+                # Create the submission
                 submission = ChecklistSubmission.objects.create(
                     scan=scan_obj,
                     firm=self.request.user.firm
+                )
+                
+                # Use ComplianceReport and get_or_create logic
+                # Note: We only pass 'scan' because 'firm' isn't a field on ComplianceReport
+                report, _ = ComplianceReport.objects.get_or_create(
+                    scan=scan_obj
                 )
                 
                 templates = ChecklistTemplate.objects.filter(active=True)
@@ -57,14 +63,12 @@ class ChecklistWizardView(ListView):
                     ChecklistResponse(
                         submission=submission,
                         template=t,
+                        report=report,  # Correctly linked to the ComplianceReport instance
                         status='pending'
                     ) for t in templates
                 ]
                 ChecklistResponse.objects.bulk_create(responses)
 
-        # 3. Return the optimized queryset
-        # select_related('template') joins the question data
-        # prefetch_related('evidence_files') gets all uploads in one efficient query
         return submission.responses.select_related('template')\
                                    .prefetch_related('evidence_files')\
                                    .order_by('template__code')
@@ -143,10 +147,23 @@ def compliance_report(request, scan_id):
     responses = submission.responses.select_related('template', 'submission__firm').all().order_by('-template__risk_impact')
 
     # UI Styling Configuration Object
+    # UI Styling Configuration Object with Heroicons
     risk_config = [
-        {'level': 'HIGH', 'color': 'rose', 'icon': 'exclamation-circle'},
-        {'level': 'MEDIUM', 'color': 'amber', 'icon': 'information-circle'},
-        {'level': 'LOW', 'color': 'emerald', 'icon': 'check-circle'},
+        {
+            'level': 'HIGH', 
+            'color': 'rose', 
+            'icon': '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>'
+        },
+        {
+            'level': 'MEDIUM', 
+            'color': 'amber', 
+            'icon': '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'
+        },
+        {
+            'level': 'LOW', 
+            'color': 'emerald', 
+            'icon': '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'
+        },
     ]
 
     context = {
@@ -223,21 +240,35 @@ def delete_submission(request, submission_id):
     return redirect('checklists:submission_list')
 
 
+
+
 def generate_checklist_pdf(request, pk):
-    """ Generates a PDF roadmap using WeasyPrint. """
+    # Security: Ensure firm access
     submission = get_object_or_404(ChecklistSubmission, id=pk, firm=request.user.firm)
     responses = submission.responses.all().select_related('template')
+    scan = submission.scan 
+    
+    # Extract technical findings from the ScanResult JSON
+    # Added .get() safety for cases where raw_data might be None
+    raw_data = scan.raw_data or {}
+    tech_findings = raw_data.get('findings', [])
 
     context = {
         'submission': submission,
         'responses': responses,
+        'scan': scan,
         'firm': request.user.firm,
+        'tech_findings': tech_findings, 
+        'compliance_index': submission.calculate_compliance_score(),
         'generated_at': timezone.now(),
+        'signature': uuid.uuid4().hex[:16].upper(), # Now works because of the import
+        'host': request.get_host(),
     }
 
-    html_string = render_to_string('checklists/pdf_roadmap_template.html', context)
-    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+    html_string = render_to_string('checklists/pdf_report_template.html', context)
     
+    # WeasyPrint generation
+    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
     pdf_buffer = io.BytesIO()
     html.write_pdf(pdf_buffer)
     pdf_bytes = pdf_buffer.getvalue()
@@ -247,7 +278,6 @@ def generate_checklist_pdf(request, pk):
     filename = f"Compliance_Report_{submission.scan.scan_id}.pdf"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
-
 
 def submission_list(request):
     """ Overview of all audits within the firm. """

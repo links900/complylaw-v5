@@ -1,0 +1,231 @@
+{% load groupby_filters %}
+{% load scan_filters %}
+{% load tz %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Compliance Audit Report - {{ submission.id|truncatechars:8 }}</title>
+
+    <style>
+        /* Page Setup for WeasyPrint */
+        @page {
+            size: A4;
+            margin: 1.5cm 1.5cm 4cm 1.5cm;
+
+            @bottom-left {
+                content: "ID: #{{ submission.id|truncatechars:12 }} | Generated: {% now 'M d, Y g:i A' %} | ComplyLaw AI Auditor";
+                font-size: 9px;
+                color: #666;
+            }
+            @bottom-center {
+                content: " Page " counter(page) " of " counter(pages);
+                font-size: 9px;
+                color: #666;
+            }
+            @bottom-right {
+                /* Dynamic QR Code for Verification */
+                content: url('https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=https://{{ host|default:"complylaw-v1.onrender.com" }}/checklists/verify/{{ submission.id }}/');
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .content-wrapper { padding-bottom: 20px; }
+        .cover-page { text-align: center; padding-top: 20px; page-break-after: always; }
+        .cover-center { margin: 100px 0 150px 0; }
+        .cover-center h1 { font-size: 28px; color: #1a5fb4; margin-bottom: 20px; }
+        .cover-center .standards { font-size: 16px; margin-bottom: 15px; }
+        .cover-center .audit-meta { font-size: 14px; line-height: 1.6; }
+        .subtitle { font-size: 14px; margin: 5px 0 20px 0; }
+        .signature { margin-top: 120px; font-style: italic; text-align: right; padding-right: 10px; font-size: 12px; }
+
+        h1 { color: #1a5fb4; text-align: center; font-size: 18px; }
+        h2 { color: #1a5fb4; font-size: 14px; border-bottom: 1px solid #1a5fb4; padding-bottom: 5px; margin-top: 20px;}
+        h3 { color: #1e40af; font-size: 1.3rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.4rem; }
+
+        .summary { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 1rem; background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; align-items: flex-end; }
+        .summary-item { text-align: center; min-width: 120px; }
+        .summary-value { font-size: 1.5rem; font-weight: bold; margin: 0; }
+
+        .grade-badge { display: inline-block; width: 60px; height: 60px; line-height: 60px; border-radius: 50%; font-size: 1.8rem; font-weight: bold; color: white; margin-bottom: 0.5rem; }
+        .grade-A { background: #10b981; }
+        .grade-B { background: #3b82f6; }
+        .grade-C { background: #f59e0b; }
+        .grade-D { background: #f97316; }
+        .grade-F { background: #ef4444; }
+
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 10px; page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f0f7ff; }
+        tr:nth-child(even) { background: #f8fafc; }
+
+        .status-yes { color: #10b981; font-weight: 600; }
+        .status-partial { color: #f59e0b; font-weight: 600; }
+        .status-no { color: #ef4444; font-weight: 600; }
+
+        .box { border: 2px solid #1a5fb4; border-radius: 8px; padding: 15px; background-color: #f8fbff; }
+        hr.dashed { border-top: 1px dashed #ccc; margin: 30px 0; }
+        
+        .verification-box {
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px solid #4f46e5;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="cover-page">
+    <h1>ComplyNet Consulting Partners</h1>
+    <p class="subtitle"><strong>Cybersecurity • Compliance • Digital Risk • Web Security</strong></p>
+    <hr class="dashed">
+    <div class="cover-center">
+		<h1>Governance & Compliance Audit Report</h1>
+		<p class="standards">
+			Manual Control Assessment | 
+			{# Fallback: if 'template' fails, try 'checklist', else show generic text #}
+			{% firstof submission.template.name submission.checklist.name "Enterprise Compliance Framework" %}
+		</p>
+		<p class="audit-meta">
+			Organization: {{ firm.name }}<br>
+			Audit Date: {{ submission.completed_at|date:"F j, Y" }}<br>
+			Report ID: #{{ submission.id|truncatechars:12 }}
+		</p>
+	</div>
+
+    <div class="verification-box">
+        <p><strong>Authenticity Verification:</strong></p>
+        <p>
+            URL: https://{{ host|default:"complylaw-v1.onrender.com" }}/checklists/verify/{{ submission.id }}/
+        </p>
+        <p style="margin-top:8px; font-style: italic; color: #4f46e5;">
+            Scan the QR code on the bottom right of any page to verify this audit.
+        </p>
+    </div>
+
+    <div class="signature">
+        /s/ Engr. M Imran, Executive Cybersecurity Advisor to Government & Global Enterprises<br>
+        Governance, Digital Risk, Compliance & Resilience Strategist<br>
+        {{ submission.completed_at|date:"F j, Y" }}
+    </div>
+</div>
+
+<div style="page-break-before: always;"></div>
+
+<div class="content-wrapper">
+
+    <div class="summary">
+        <div class="summary-item">
+            <div class="grade-badge {% if compliance_index >= 90 %}grade-A{% elif compliance_index >= 80 %}grade-B{% elif compliance_index >= 70 %}grade-C{% elif compliance_index >= 60 %}grade-D{% else %}grade-F{% endif %}">
+                {% if compliance_index >= 90 %}A{% elif compliance_index >= 80 %}B{% elif compliance_index >= 70 %}C{% elif compliance_index >= 60 %}D{% else %}F{% endif %}
+            </div>
+            <h4>Audit Grade</h4>
+        </div>
+
+        <div class="summary-item">
+            <p class="summary-value">{{ compliance_index }}%</p>
+            <h4>Compliance Index</h4>
+        </div>
+
+        <div class="summary-item">
+            <p class="summary-value">{{ responses.count }}</p>
+            <h4>Controls Audited</h4>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>Executive Summary</h3>
+        <p>This report presents the findings of a formal compliance assessment for <strong>{{ firm.name }}</strong> regarding <strong>{{ submission.template.name }}</strong> frameworks. This audit captures manual control attestations and evidence-based self-assessments.</p>
+        
+        <p>Current assessment indicates a <strong>Compliance Index of {{ compliance_index }}%</strong>. 
+        {% if compliance_index >= 80 %}
+            The organization demonstrates a mature governance posture with minor gaps identified.
+        {% elif compliance_index >= 60 %}
+            The organization maintains foundational controls but lacks critical documentation or procedural consistency.
+        {% else %}
+            Critical compliance deficiencies were identified. Immediate governance intervention is recommended.
+        {% endif %}
+        </p>
+
+        <p>This document serves as evidence of due diligence and proactive regulatory engagement.</p>
+    </div>
+
+    <div class="section">
+        <h3>Detailed Governance Findings</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Ref ID</th>
+                    <th style="width: 45%;">Control Requirement</th>
+                    <th style="width: 15%;">Attestation</th>
+                    <th style="width: 25%;">Auditor Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+				{% for resp in responses %}
+					<tr>
+						<td><strong>{{ resp.template.code|default:"N/A" }}</strong></td>
+						
+						<td>
+							{# Defensive lookup: tries question, then text, then uses the object string itself #}
+							{% firstof resp.template.question resp.template.text resp.template.description resp.template %}
+							
+							{% if resp.comment %}
+								<div style="font-size: 9px; color: #64748b; margin-top: 4px; font-style: italic;">
+									<strong>Auditor Note:</strong> {{ resp.comment }}
+								</div>
+							{% endif %}
+						</td>
+						
+						<td class="status-{{ resp.status|lower }}">
+							{% if resp.status == 'yes' %}COMPLIANT
+							{% elif resp.status == 'no' %}NON-COMPLIANT
+							{% else %}PARTIAL{% endif %}
+						</td>
+						
+						<td>
+							{# Fallback to avoid 'submission.template.name' crash #}
+							{% firstof resp.template.category.name submission.checklist.name "General Security" %}
+						</td>
+					</tr>
+					{% endfor %}
+			</tbody>
+        </table>
+    </div>
+
+    <div class="section" style="page-break-before: always;">
+        <h3>Strategic Risk Perspective</h3>
+        <p>Compliance is a continuous journey of resilience, not a static destination. The modern regulatory landscape requires dynamic governance.</p>
+        <div class="box">
+            <p><strong>Legal & Operational Impact:</strong></p>
+            <ul>
+                <li>Every "Non-Compliant" status represents a potential liability during external audits or litigation.</li>
+                <li>Documentation gaps are the primary cause of insurance claim denials in cybersecurity events.</li>
+                <li>Strategic remediation of these gaps will improve the organization's risk profile and market trust.</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2>Governance Certification Statement</h2>
+    <div class="box">
+        <p>ComplyNet Consulting Partners certifies that this report accurately reflects the responses provided during the assessment cycle ending {{ submission.completed_at|date:"F j, Y" }}.</p>
+        
+        <p><strong>Note:</strong> These findings are based on manual attestations and organizational self-reporting. While providing a strong baseline for maturity, they should be paired with technical validation for a full-spectrum security posture.</p>
+        
+        <p><strong>Digital Signature:</strong> <code style="color: #1a5fb4;">{{ signature }}</code></p>
+    </div>
+
+</div>
+</body>
+</html>

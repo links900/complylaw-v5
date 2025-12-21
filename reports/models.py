@@ -426,3 +426,21 @@ class ReportVerification(models.Model):
     def __str__(self):
         return f'{self.report_id} | {self.domain}'
 
+
+
+    
+def get_audit_progress(self):
+        """
+        Calculates the percentage of controls that have been audited.
+        Audited = Status is COMPLIANT, PARTIAL, or NA.
+        """
+        total = self.checklist_responses.count()
+        if total == 0:
+            return 0
+        
+        # We consider an item 'audited' if it isn't the default 'NON_COMPLIANT' 
+        # (assuming NON_COMPLIANT is the starting state for an unreviewed item)
+        # Or more strictly, count everything that isn't empty or 'To be Audited'.
+        audited = self.checklist_responses.exclude(status='NON_COMPLIANT').count()
+        
+        return int((audited / total) * 100)
