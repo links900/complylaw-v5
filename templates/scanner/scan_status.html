@@ -1,0 +1,148 @@
+<!-- templates/scanner/scan_status.html -->
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Progress - ComplyLaw</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-black text-blue-600 tracking-tighter">ComplyLaw</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 font-medium text-sm">Dashboard</a>
+                    <a href="/scanner/list/" class="text-gray-700 hover:text-blue-600 font-medium text-sm">Scans</a>
+                    <form method="post" action="/accounts/logout/" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-3xl py-12 px-6 shadow-inner">
+            
+            <div class="text-center mb-10">
+                <h1 class="text-4xl font-black text-indigo-900 tracking-tight">Compliance Scan Status</h1>
+                <p class="text-indigo-600/70 mt-2 font-medium">Real-time technical assessment in progress</p>
+            </div>
+
+            <div class="mb-8 text-center flex justify-center gap-4">
+                <a href="{% url 'scanner:scan_list' %}" class="inline-flex items-center px-6 py-3 bg-white text-indigo-600 border border-indigo-100 font-bold rounded-xl hover:bg-indigo-50 transition shadow-sm">
+                    ← Back to Scans
+                </a>
+                
+            </div>
+            
+            <div id="scan-progress" 
+                 hx-get="{% url 'scanner:scan_status_partial' scan.scan_id %}" 
+                 hx-trigger="refreshStatus from:body" 
+                 hx-swap="outerHTML">
+                {% include 'scanner/partials/scan_progress.html' %}
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-100 py-6 text-center text-xs text-gray-400 font-medium">
+        © 2025 ComplyLaw Digital Systems. All rights reserved.
+    </footer>
+
+    <script>
+    (function() {
+        let socket = null;
+        window.modalTriggered = false;
+
+        function connectWebSocket() {
+            const scanId = "{{ scan.scan_id }}";
+            const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+            const wsUrl = `${wsScheme}://${window.location.host}/ws/scan/${scanId}/`;
+            
+            socket = new WebSocket(wsUrl);
+
+            socket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                
+                // 1. Update UI Progress Elements
+                const bar = document.getElementById("scan-progress-bar-main");
+                const percentDisplay = document.getElementById("progress-percent-text");
+                const currentStep = document.getElementById("current-step");
+                
+                if (data.progress !== undefined) {
+                    if (bar) bar.style.width = data.progress + "%";
+                    if (percentDisplay) percentDisplay.textContent = Math.round(data.progress) + "%";
+                }
+
+                // 2. Update Terminal Logs
+                const logList = document.getElementById("scan-log");
+                const logWrapper = document.getElementById("scan-log-wrapper");
+
+                if (data.step && logList) {
+                    if (currentStep) currentStep.textContent = data.step;
+                    
+                    const li = document.createElement("li");
+                    const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    
+                    // Logic to color status keywords
+                    let statusColor = "text-gray-400"; 
+                    const upperStep = data.step.toUpperCase();
+                    if (upperStep.includes("PASS")) statusColor = "text-emerald-400 font-bold";
+                    else if (upperStep.includes("FAIL")) statusColor = "text-rose-400 font-bold";
+                    else if (upperStep.includes("WARN")) statusColor = "text-amber-400 font-bold";
+                    else if (upperStep.includes("COMPLETE")) statusColor = "text-blue-400 font-black";
+
+                    li.className = "border-b border-white/5 py-1.5 font-mono text-[11px] leading-relaxed tracking-tight";
+                    li.innerHTML = `
+                        <span class="text-gray-600">[${time}]</span> 
+                        <span class="text-indigo-500 mr-1">[${data.progress || '..'}%]</span> 
+                        <span class="${statusColor}">${data.step}</span>
+                    `;
+                    
+                    logList.appendChild(li);
+                    // Force scroll to bottom
+                    if (logWrapper) logWrapper.scrollTop = logWrapper.scrollHeight;
+                }
+
+                // 3. Finalization sequence
+                if ((data.type === "complete" || data.progress === 100) && !window.modalTriggered) {
+					window.modalTriggered = true;
+					
+					setTimeout(() => {
+						// Refresh the status partial to show Grade/Download buttons
+						document.body.dispatchEvent(new Event('refreshStatus'));
+						
+						// Trigger the checklist modal dynamically for this specific scan
+						const modalUrl = "{% url 'scanner:checklist_modal' scan.id %}";
+						htmx.ajax('GET', modalUrl, { 
+							target: 'body', 
+							swap: 'beforeend' 
+						});
+					}, 1800);
+				}
+            };
+
+            socket.onopen = () => console.log("Security Socket Connected");
+            socket.onclose = () => { if(!window.modalTriggered) setTimeout(connectWebSocket, 2000); };
+        }
+        
+        connectWebSocket();
+    })();
+    </script>
+</body>
+</html>

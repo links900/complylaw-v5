@@ -1,0 +1,122 @@
+<!-- templates/scanner/partials/scan_progress.html -->
+{% load humanize %}
+<div id="scan-progress" class="max-w-5xl mx-auto">
+    <div id="scan-progress-container" class="bg-white shadow-2xl rounded-3xl overflow-hidden border border-gray-200/50">
+        
+        <div class="flex items-center justify-between px-8 py-6 border-b bg-white">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-sm border border-indigo-100">
+                    {% if scan.status == 'COMPLETED' %}
+                        <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    {% else %}
+                        <svg class="w-7 h-7 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6l4 2"/></svg>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-slate-800 tracking-tight">Technical Analysis</h2>
+                    <p class="text-xs text-slate-400 font-medium">Domain: <span class="font-mono text-indigo-600">{{ scan.domain }}</span></p>
+                </div>
+            </div>
+            <div class="flex flex-col items-end">
+                <span class="px-4 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    {{ scan.status }}
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-0">
+            
+            <div class="lg:col-span-2 p-10 bg-white border-r border-gray-100">
+                <div class="flex justify-between items-end mb-6">
+                    <div>
+                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Engine Progress</h3>
+                        <p class="text-sm text-slate-700 font-bold">Task: <span id="current-step" class="text-indigo-600">{{ scan.scan_log.splitlines|last|default:"Ready..." }}</span></p>
+                    </div>
+                    <div id="progress-percent-text" class="text-4xl font-black text-indigo-600 tracking-tighter">
+                        {{ scan.progress|default:"0" }}%
+                    </div>
+                </div>
+                
+                <div class="w-full bg-slate-100 rounded-2xl h-6 overflow-hidden p-1.5 shadow-inner border border-slate-200/50">
+                    <div id="scan-progress-bar-main" class="h-full rounded-xl transition-all duration-1000 ease-out" 
+                         style="width: {{ scan.progress|default:'10' }}%; background: linear-gradient(90deg, #4f46e5 0%, #10b981 100%);">
+                    </div>
+                </div>
+                
+                <div class="mt-12 p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100/50 flex gap-4 items-start">
+                    <div class="mt-1 text-indigo-600">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 2h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/></svg>
+                    </div>
+                    <p class="text-[11px] text-indigo-800/80 leading-relaxed font-medium">
+                        The ComplyLaw engine is running an automated OWASP Top 10 assessment alongside GDPR procedural checks. Please do not close this window until the manual audit trigger appears.
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1 bg-[#0f172a] flex flex-col">
+                <div class="px-5 py-4 border-b border-white/10 bg-black/40 flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                        <div class="w-2 h-2 rounded-full bg-amber-500"></div>
+                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                        <span class="text-[10px] font-black text-indigo-300 uppercase tracking-widest ml-2">Live Logs</span>
+                    </div>
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                </div>
+                <div id="scan-log-wrapper" class="p-5 overflow-y-auto font-mono h-[380px] scrollbar-thin">
+                    <ul id="scan-log" class="space-y-1.5 text-gray-400">
+                        {% for line in scan.scan_log.splitlines %}
+                            <li class="border-b border-white/5 pb-1 last:border-0 opacity-70 text-[11px]">{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        {% if scan.status == 'COMPLETED' %}
+        <div class="p-10 bg-slate-50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-8">
+            <div class="flex items-center gap-8">
+                <div class="text-center">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Compliance Grade</p>
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-3xl font-black bg-indigo-600 text-white shadow-2xl shadow-indigo-200">
+                        {{ scan.grade }}
+                    </div>
+                </div>
+                <div class="h-14 w-px bg-slate-200"></div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Risk Score</p>
+                    <p class="text-3xl font-black text-slate-800 tracking-tighter">{{ scan.risk_score|floatformat:1 }}%</p>
+                    <p class="text-[10px] font-bold text-rose-500 mt-1 uppercase">High Risk Detected</p>
+                </div>
+            </div>
+            
+            <a href="{% url 'scanner:pdf' scan.scan_id %}" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-700 hover:bg-slate-50 transition-all shadow-xl shadow-slate-200/50 gap-3 group">
+                <svg class="w-5 h-5 text-rose-500 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-11a1 1 0 112 0v4a1 1 0 11-2 0V7zm1 8a1 1 0 100-2 1 1 0 000 2z"/></svg>
+                Download Technical Report
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+   {% if scan.status == 'COMPLETED' %}
+    <div class="mt-10 bg-gradient-to-r from-indigo-600 to-blue-700 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-indigo-200 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+        
+        <div class="flex items-center gap-5 relative z-10">
+            <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-black text-white">Manual Procedural Audit</h3>
+                <p class="text-indigo-100 text-sm opacity-90">Technical scan passed. Complete the manual questionnaire to finalize legal compliance.</p>
+            </div>
+        </div>
+        <a href="{% url 'checklists:wizard' scan.scan_id %}" class="relative z-10 bg-white text-indigo-700 px-10 py-4 rounded-xl font-black hover:scale-105 transition-transform shadow-lg text-center whitespace-nowrap">
+            Start Manual Audit →
+        </a>
+    </div>
+    {% endif %}
+</div>
