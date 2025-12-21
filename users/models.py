@@ -66,7 +66,7 @@ class FirmProfile(models.Model):
     audit_rigor = models.CharField(
         max_length=20, 
         choices=[('simple', 'Simple'), ('detailed', 'Detailed')],
-        default='simple'
+        default='detailed'
     )
     
     retention_days = models.IntegerField(default=365, help_text="Number of days to keep audit logs")
