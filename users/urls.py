@@ -39,6 +39,9 @@ urlpatterns = [
     # path("", TemplateView.as_view(template_name="home.html"), name="home"),
     path('create-admin/', views.create_admin_user, name='create_admin'),
     
+    path('firm/archive/', views.ArchiveFirmView.as_view(), name='archive_firm'),
+    
 
    
 ]
+

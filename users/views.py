@@ -1,4 +1,5 @@
 # users/views.py — SAFE & FINAL
+
 from django.views.generic import TemplateView, UpdateView, CreateView, FormView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
@@ -9,16 +10,16 @@ from django.contrib.auth import get_user_model
 from django.http import HttpResponse, JsonResponse
 from allauth.account.views import SignupView
 from .models import FirmProfile, UserAccount
-from .forms import FirmProfileForm
+from .forms import FirmSettingsForm, FirmProfileForm # <--- Updated Imports
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
+from django.utils import timezone as django_timezone
 import secrets
 import string
 import logging
 
 logger = logging.getLogger(__name__)
-
 User = get_user_model()
 
 
@@ -27,7 +28,7 @@ User = get_user_model()
 # -----------------------------
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = 'users/profile.html'
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['firm'] = getattr(self.request.user, 'firm', None)
@@ -39,10 +40,10 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
     fields = ['first_name', 'last_name']
     template_name = 'users/profile_edit.html'
     success_url = reverse_lazy('users:profile')
-
+    
     def get_object(self):
         return self.request.user
-
+        
     def form_valid(self, form):
         messages.success(self.request, "Profile updated.")
         return super().form_valid(form)
@@ -53,53 +54,60 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
 # -----------------------------
 class FirmSettingsView(LoginRequiredMixin, UpdateView):
     model = FirmProfile
-    form_class = FirmProfileForm
+    form_class = FirmSettingsForm  # <--- Correct form class
     template_name = 'users/firm_settings.html'
     success_url = reverse_lazy('users:firm_settings')
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect('account_login')
-
-        if not hasattr(request.user, 'firmprofile'):
-            messages.warning(request, "Please set up your firm first.")
-            return redirect("users:firm_wizard")
-
-        return super().dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
         return self.request.user.firmprofile
 
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('account_login')
+        if not hasattr(request.user, 'firmprofile'):
+            messages.warning(request, "Please set up your firm first.")
+            return redirect("users:firm_wizard")
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
-        messages.success(self.request, "Firm settings saved.")
+        messages.success(self.request, "Settings updated successfully.")
         return super().form_valid(form)
 
     def form_invalid(self, form):
         messages.error(self.request, "Please correct the errors below.")
         return super().form_invalid(form)
 
-
+class ArchiveFirmView(LoginRequiredMixin, View):
+    def post(self, request):
+        profile = getattr(request.user, 'firmprofile', None)
+        if profile:
+            profile.is_active = False
+            profile.archived_at = django_timezone.now()
+            profile.save()
+            messages.error(request, "Organization has been archived.")
+        return redirect('users:profile')
+        
+        
 class FirmSetupWizardView(LoginRequiredMixin, CreateView):
     model = FirmProfile
-    form_class = FirmProfileForm
+    form_class = FirmProfileForm # Uses the alias from forms.py
     template_name = 'users/firm_wizard.html'
     success_url = reverse_lazy('dashboard:home')
-
-    def get(self, request, *args, **kwargs):
-        messages.get_messages(request).used = True  # Clear stale warnings
-        return super().get(request, *args, **kwargs)
 
     def form_valid(self, form):
         firm = form.save(commit=False)
         firm.user = self.request.user
         firm.save()
-
         self.request.user.firm = firm
         self.request.user.save()
-
-        messages.success(self.request, f"Welcome to {firm.firm_name}! Your firm is ready.")
+        messages.success(self.request, f"Welcome to {firm.firm_name}!")
         return super().form_valid(form)
 
+    def get(self, request, *args, **kwargs):
+        messages.get_messages(request).used = True  # Clear stale warnings
+        return super().get(request, *args, **kwargs)
+
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_wizard'] = True

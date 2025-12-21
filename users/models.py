@@ -1,13 +1,12 @@
-# users/models.py (COMPLETE)
+# users/models.py
 from django.db import models
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
 from encrypted_model_fields.fields import EncryptedCharField, EncryptedTextField
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 from auditlog.registry import auditlog
 from django.conf import settings
 from django.core.validators import RegexValidator
-
 
 class FirmProfile(models.Model):
     SUBSCRIPTION_CHOICES = [
@@ -30,17 +29,20 @@ class FirmProfile(models.Model):
     logo = models.ImageField(upload_to='logos/', null=True, blank=True)
     address = EncryptedTextField(blank=True)
     
-    
     user = models.OneToOneField(
-        #User,
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='firmprofile'  # ← THIS IS KEY
+        related_name='firmprofile'
     )
     
-    # Encrypted JSON
+    # New Localization & Status
+    timezone = models.CharField(max_length=100, default='UTC')
+    currency = models.CharField(max_length=3, default='USD')
+    date_format = models.CharField(max_length=20, default='%d/%m/%Y')
+    is_active = models.BooleanField(default=True)
+    archived_at = models.DateTimeField(null=True, blank=True)
+
     _preferences = EncryptedTextField(blank=True, default='{}')
-    
     subscription_tier = models.CharField(max_length=20, choices=SUBSCRIPTION_CHOICES, default='trial')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -48,39 +50,20 @@ class FirmProfile(models.Model):
     def __str__(self):
         return self.firm_name
 
-    class Meta:
-        indexes = [
-            models.Index(fields=['domain']),
-            models.Index(fields=['email']),
-        ]
-
-    # JSON Property
     def get_preferences(self):
         return json.loads(self._preferences) if self._preferences else {}
     def set_preferences(self, value):
         self._preferences = json.dumps(value, cls=DjangoJSONEncoder)
     preferences = property(get_preferences, set_preferences)
 
-
-# users/models.py (ONLY CHANGE THIS LINE)
 class UserAccount(AbstractUser):
     ROLE_CHOICES = [('owner', 'Owner'), ('viewer', 'Viewer')]
     stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True, null=True)
-    
-    firm = models.ForeignKey(
-        FirmProfile,
-        on_delete=models.CASCADE,
-        related_name='users',
-        null=True,      # ← ADD THIS
-        blank=True      # ← ADD THIS
-    )
+    firm = models.ForeignKey(FirmProfile, on_delete=models.CASCADE, related_name='users', null=True, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='viewer')
     mfa_secret = EncryptedCharField(max_length=255, null=True, blank=True)
     last_scan_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.email} ({self.role} @ {self.firm.firm_name if self.firm else 'No Firm'})"
 
 auditlog.register(FirmProfile)
 auditlog.register(UserAccount)

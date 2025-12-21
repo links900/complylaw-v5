@@ -1,25 +1,48 @@
+<!-- templates/users/firm_settings.html — BEAUTIFUL & PERFECTLY SIZED -->
+
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Firm Settings – ComplyLaw{% endblock %}
+
+{% block title %}Organization Settings – ComplyLaw{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
-  <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-xl shadow-xl overflow-hidden">
-      <!-- Header -->
-      <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-7 text-center">
-        <h1 class="text-3xl font-bold text-white">Firm Settings</h1>
-        <p class="text-indigo-100 mt-2 text-base">Update your firm information</p>
-      </div>
+<div class="min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-5xl mx-auto">
+    
+    <nav class="flex mb-8 text-sm font-medium text-slate-500">
+      <a href="{% url 'users:profile' %}" class="hover:text-indigo-600 transition">Account</a>
+      <span class="mx-2">/</span>
+      <span class="text-slate-900">Organization Settings</span>
+    </nav>
 
-      <div class="p-8">
-        <!-- Messages -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      
+      <aside class="lg:col-span-3">
+        <nav class="space-y-1 sticky top-8">
+          <a href="#" class="flex items-center px-4 py-2.5 text-sm font-bold bg-white text-indigo-700 rounded-lg shadow-sm border border-slate-200">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-10V4a1 1 0 011-1h2a1 1 0 011 1v3M12 15h.01M12 12h.01M12 9h.01M8 11h.01M8 14h.01M8 17h.01M16 11h.01M16 14h.01M16 17h.01"></path></svg>
+            General Info
+          </a>
+          <a href="/billing/" class="flex items-center px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            Subscription & Billing
+          </a>
+          <a href="{% url 'users:profile' %}" class="flex items-center px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition">
+            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 01-9-4.912"></path></svg>
+            Team Members
+          </a>
+        </nav>
+      </aside>
+
+      <div class="lg:col-span-9">
+        
         {% if messages %}
           {% for message in messages %}
-            <div class="mb-6 p-4 rounded-lg text-center font-medium text-sm border
-              {% if message.tags == 'success' %}bg-green-50 text-green-800 border-green-200
-              {% elif message.tags == 'error' %}bg-red-50 text-red-700 border-red-200{% endif %}">
-              {{ message }}
+            <div class="mb-6 p-4 rounded-xl flex items-center shadow-sm border
+              {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-100
+              {% else %}bg-red-50 text-red-800 border-red-100{% endif %}">
+              <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              <span class="text-sm font-semibold">{{ message }}</span>
             </div>
           {% endfor %}
         {% endif %}
@@ -27,162 +50,218 @@
         <form method="post" enctype="multipart/form-data" class="space-y-8">
           {% csrf_token %}
 
-          <!-- Firm Info Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Firm Name <span class="text-red-500">*</span></label>
-              {{ form.firm_name }}
-              {% if form.firm_name.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.firm_name.errors|join:", " }}</p>
-              {% endif %}
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+            <div class="p-6 border-b border-slate-100">
+              <h2 class="text-lg font-bold text-slate-900">Organization Identity</h2>
+              <p class="text-sm text-slate-500">Essential firm information for reporting and compliance certificates.</p>
             </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Domain <span class="text-red-500">*</span></label>
-              {{ form.domain }}
-              {% if form.domain.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.domain.errors|join:", " }}</p>
-              {% endif %}
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Firm Email <span class="text-red-500">*</span></label>
-              {{ form.email }}
-              {% if form.email.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.email.errors|join:", " }}</p>
-              {% endif %}
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-              {{ form.phone }}
-              {% if form.phone.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.phone.errors|join:", " }}</p>
-              {% endif %}
-            </div>
-            <div class="md:col-span-2">
-              <label class="block text-sm font-semibold text-gray-700 mb-2">Firm Address</label>
-              {{ form.address }}
-              {% if form.address.errors %}
-                <p class="text-red-600 text-xs mt-1">{{ form.address.errors|join:", " }}</p>
-              {% endif %}
-            </div>
+            
+            <div class="p-8 space-y-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-2">
+                  <label class="text-sm font-bold text-slate-700">Firm Name <span class="text-red-500">*</span></label>
+                  {{ form.firm_name }}
+                  {% if form.firm_name.errors %}<p class="text-red-600 text-xs mt-1">{{ form.firm_name.errors|join:", " }}</p>{% endif %}
+                </div>
 
-            <!-- IMPROVED LOGO SECTION -->
-                        
-				<div class="md:col-span-2">
-				  <label class="block text-sm font-semibold text-gray-700 mb-3">Firm Logo</label>
+                <div class="space-y-2">
+                  <label class="text-sm font-bold text-slate-700">Domain / URL <span class="text-red-500">*</span></label>
+                  {{ form.domain }}
+                  {% if form.domain.errors %}<p class="text-red-600 text-xs mt-1">{{ form.domain.errors|join:", " }}</p>{% endif %}
+                </div>
 
-				  <!-- Current Logo + Remove Button -->
-				  {% if form.instance.logo %}
-					<div class="mb-6 flex items-center gap-6 p-6 bg-gray-50 rounded-xl border border-gray-200">
-					  <img src="{{ form.instance.logo.url }}" alt="Current logo" class="h-32 w-32 object-contain rounded-lg shadow-md border border-gray-200">
-					  <div class="flex-1">
-						<p class="text-sm font-medium text-gray-700">Current logo</p>
-						<p class="text-xs text-gray-500 mt-1">Upload a new image below to replace it</p>
-						<button type="button" 
-								hx-post="{% url 'users:clear_firm_logo' %}"
-								hx-confirm="Are you sure you want to remove the logo?"
-								hx-target="closest div"
-								hx-swap="outerHTML"
-								class="mt-3 inline-flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 hover:text-red-700 transition">
-						  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-						  </svg>
-						  Remove Logo
-						</button>
-					  </div>
-					</div>
-				  {% else %}
-					<div class="mb-6 p-6 bg-gray-50 rounded-xl border border-gray-200 text-center text-gray-500">
-					  <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-					  </svg>
-					  <p class="text-sm">No logo uploaded yet</p>
-					</div>
-				  {% endif %}
+                <div class="space-y-2">
+                  <label class="text-sm font-bold text-slate-700">Firm Email <span class="text-red-500">*</span></label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<p class="text-red-600 text-xs mt-1">{{ form.email.errors|join:", " }}</p>{% endif %}
+                </div>
 
-				  <!-- File Upload Area -->
-				  <div class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-indigo-400 transition cursor-pointer bg-white">
-					<input type="file" name="logo" accept="image/*" class="hidden" id="id_logo">
-					<label for="id_logo" class="cursor-pointer">
-					  <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-					  </svg>
-					  <p class="text-lg font-medium text-gray-700">Drop your logo here or <span class="text-indigo-600 underline">click to browse</span></p>
-					  <p class="text-sm text-gray-500 mt-2">PNG, JPG, SVG • Max 5MB • Recommended: square with transparent background</p>
-					</label>
-				  </div>
+                <div class="space-y-2">
+                  <label class="text-sm font-bold text-slate-700">Phone Number</label>
+                  {{ form.phone }}
+                  {% if form.phone.errors %}<p class="text-red-600 text-xs mt-1">{{ form.phone.errors|join:", " }}</p>{% endif %}
+                </div>
 
-				  <!-- Live Preview -->
-				  <div id="logo-preview" class="mt-6 hidden text-center">
-					<p class="text-sm font-medium text-gray-700 mb-4">New logo preview:</p>
-					<img id="preview-img" class="h-48 w-48 object-contain rounded-xl shadow-xl border border-gray-200 mx-auto">
-				  </div>
-
-				  {% if form.logo.errors %}
-					<p class="text-red-600 text-sm mt-3">{{ form.logo.errors|join:", " }}</p>
-				  {% endif %}
-				</div>
-				
-			
-			
-          </div>
-
-          <!-- Subscription Plan -->
-          <div class="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-lg border border-purple-200">
-            <h3 class="text-lg font-bold text-gray-800 text-center mb-5">Current Plan</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div>
-                <p class="text-xs uppercase tracking-wider text-gray-600">Plan</p>
-                <p class="text-xl font-bold text-purple-700 mt-1">{{ form.instance.get_subscription_tier_display }}</p>
-              </div>
-              <div>
-                <p class="text-xs uppercase tracking-wider text-gray-600">Status</p>
-                <p class="text-xl font-bold text-green-600 mt-1">Active</p>
-              </div>
-              <div class="flex items-center justify-center">
-                <a href="/billing/" class="px-6 py-2.5 bg-purple-600 text-white font-medium text-sm rounded-lg hover:bg-purple-700 transition">
-                  Upgrade Plan
-                </a>
+                <div class="md:col-span-2 space-y-2">
+                  <label class="text-sm font-bold text-slate-700">Physical Address</label>
+                  {{ form.address }}
+                  {% if form.address.errors %}<p class="text-red-600 text-xs mt-1">{{ form.address.errors|join:", " }}</p>{% endif %}
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Buttons -->
-          <div class="pt-8 border-t border-gray-200 flex justify-between items-center">
-            <a href="{% url 'users:profile' %}" class="text-indigo-600 hover:text-indigo-800 font-medium text-base">
-              Back to Profile
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100">
+                <h2 class="text-lg font-bold text-slate-900">Brand Assets</h2>
+                <p class="text-sm text-slate-500">Visual identity used for client portals and white-labeled reports.</p>
+            </div>
+            <div class="p-8">
+                <div class="flex flex-col md:flex-row items-start gap-8">
+                    <div class="w-full md:w-1/3">
+                        <div class="relative group" id="preview-container">
+                            {% if form.instance.logo %}
+                                <img src="{{ form.instance.logo.url }}" id="preview-img" class="w-full h-48 object-contain bg-slate-50 rounded-xl border-2 border-slate-100 shadow-inner p-4">
+                            {% else %}
+                                <div id="empty-preview" class="w-full h-48 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
+                                    <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    <span class="text-xs font-bold uppercase tracking-widest">No Logo</span>
+                                </div>
+                                <img id="preview-img" class="hidden w-full h-48 object-contain bg-slate-50 rounded-xl border-2 border-slate-100 shadow-inner p-4">
+                            {% endif %}
+                            
+                            {% if form.instance.logo %}
+                            <button type="button" 
+                                    hx-post="{% url 'users:clear_firm_logo' %}"
+                                    hx-confirm="Remove this logo?"
+                                    hx-target="#preview-container"
+                                    hx-swap="outerHTML"
+                                    class="absolute -top-2 -right-2 bg-white text-red-500 rounded-full p-1.5 shadow-lg border border-red-100 hover:bg-red-50 transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex-1 w-full">
+                        <label class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-400 transition-all group">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-10 h-10 mb-3 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <p class="mb-2 text-sm text-slate-700 font-semibold">Drop new logo or click</p>
+                                <p class="text-xs text-slate-500 uppercase tracking-widest">SVG, PNG or JPG (Max 5MB)</p>
+                            </div>
+                            <input type="file" name="logo" class="hidden" id="id_logo" accept="image/*">
+                        </label>
+                        {% if form.logo.errors %}<p class="text-red-600 text-xs mt-2">{{ form.logo.errors|join:", " }}</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+            <div class="p-6 border-b border-slate-100">
+                <h2 class="text-lg font-bold text-slate-900">Localization</h2>
+                <p class="text-sm text-slate-500">Configure regional formats for international legal compliance.</p>
+            </div>
+            <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Primary Timezone</label>
+                    {{ form.timezone }}
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Fiscal Currency</label>
+                    {{ form.currency }}
+                </div>
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Date Format</label>
+                    {{ form.date_format }}
+                </div>
+            </div>
+          </div>
+
+          <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center">
+                <div class="p-3 bg-indigo-600 text-white rounded-xl mr-4">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-indigo-900">Current Plan: {{ form.instance.get_subscription_tier_display }}</h3>
+                    <p class="text-sm text-indigo-700">Your account is active and in good standing.</p>
+                </div>
+            </div>
+            <a href="/billing/" class="w-full md:w-auto px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition text-center shadow-lg shadow-indigo-100">
+                Manage Subscription
             </a>
-            <button type="submit" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-base rounded-lg hover:from-indigo-700 hover:to-purple-700 transition shadow">
-              Save Changes
+          </div>
+
+          <div class="flex items-center justify-between pt-8 border-t border-slate-200">
+            <a href="{% url 'users:profile' %}" class="text-sm font-bold text-slate-600 hover:text-slate-900 transition">
+              ← Back to Profile
+            </a>
+            <button type="submit" class="px-10 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition transform active:scale-95">
+                Save All Changes
             </button>
           </div>
+
+          <div class="pt-12">
+            <div class="p-6 bg-red-50 rounded-2xl border border-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-center md:text-left">
+                    <h4 class="text-sm font-bold text-red-800 uppercase tracking-widest">Danger Zone</h4>
+                    <p class="text-sm text-red-600 mt-1">Archive this firm to freeze all activity. This action is reversible by admins.</p>
+                </div>
+                <button type="button" onclick="toggleArchiveModal(true)" class="px-6 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-xl hover:bg-red-600 hover:text-white transition">
+                    Archive Organization
+                </button>
+            </div>
+          </div>
+
         </form>
       </div>
     </div>
   </div>
 </div>
 
-<!-- JavaScript for Live Logo Preview -->
+<div id="archiveModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[100] p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-8 shadow-2xl transform transition-all">
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+        <h3 class="text-xl font-bold text-slate-900 text-center mb-2">Archive Organization?</h3>
+        <p class="text-slate-500 text-center text-sm mb-8">This will immediately suspend access for all <strong>{{ firm.users.count }} team members</strong>. All active compliance monitoring will be paused.</p>
+        
+        <div class="flex flex-col gap-3">
+            <form method="post" action="{% url 'users:archive_firm' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition">
+                    Confirm Archival
+                </button>
+            </form>
+            <button type="button" onclick="toggleArchiveModal(false)" class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">
+                Keep Active
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling Django widgets to match UI */
+    input[type="text"], input[type="email"], input[type="url"], input[type="tel"], textarea, select {
+        @apply w-full rounded-lg border-slate-300 text-sm py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all;
+    }
+    textarea { @apply min-h-[100px]; }
+</style>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    const input = document.querySelector('input[name="logo"]');
-    const preview = document.getElementById('logo-preview');
+    const input = document.getElementById('id_logo');
     const previewImg = document.getElementById('preview-img');
+    const emptyPreview = document.getElementById('empty-preview');
 
-    if (input) {
-        input.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    preview.classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            } else {
-                preview.classList.add('hidden');
+    // Live Logo Preview
+    input?.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('hidden');
+                if(emptyPreview) emptyPreview.classList.add('hidden');
             }
-        });
-    }
+            reader.readAsDataURL(file);
+        }
+    });
 });
+
+// Archive Modal Control
+function toggleArchiveModal(show) {
+    const modal = document.getElementById('archiveModal');
+    if (show) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } else {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+}
 </script>
 {% endblock %}
