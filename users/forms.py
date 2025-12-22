@@ -19,10 +19,9 @@ class FirmSettingsForm(forms.ModelForm):
     class Meta:
         model = FirmProfile
         fields = [
-            'firm_name', 'domain', 'email', 'phone', 'address', 'logo', 
-            'subscription_tier', 'timezone', 'currency', 'date_format',
-            'selected_frameworks', 'audit_rigor', 'retention_days', 'data_region',
-            'scan_mode', 'active_standard'
+            'firm_name', 'email', 'phone', 'domain', 
+            'timezone', 'currency', 'date_format', 
+            'address', 'logo', 'subscription_tier'
         ]
 
     def __init__(self, *args, **kwargs):

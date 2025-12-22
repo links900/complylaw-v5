@@ -63,7 +63,10 @@ class FirmSettingsView(LoginRequiredMixin, UpdateView):
     
     def get_object(self):
         # Access the profile linked to the user
-        return self.request.user.firmprofile
+        try:
+            return self.request.user.firmprofile
+        except (UserAccount.firmprofile.RelatedObjectDoesNotExist, AttributeError):
+            return None
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
@@ -103,6 +106,7 @@ class FirmSettingsView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "Settings updated successfully.")
         response = super().form_valid(form)
+        
         # Trigger the checklist sync for the new active standard
         self.object.sync_compliance_checklist()
         return response
@@ -131,20 +135,35 @@ class FirmSetupWizardView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         firm = form.save(commit=False)
         firm.user = self.request.user
+        
+        # Inject defaults for the required fields that aren't in the wizard UI
+        firm.scan_mode = 'simple'
+        firm.active_standard = 'GDPR'
+        firm.is_active = True
+        
         firm.save()
-        self.request.user.firm = firm
+        
+        # Link the user to the firm correctly
+        self.request.user.firm_id = firm.id
         self.request.user.save()
+
         messages.success(self.request, f"Welcome to {firm.firm_name}!")
         return super().form_valid(form)
 
     def get(self, request, *args, **kwargs):
-        messages.get_messages(request).used = True  # Clear stale warnings
+        # Prevent users who already have a firm from re-running the wizard
+        if hasattr(request.user, 'firmprofile') and request.user.firmprofile:
+            return redirect('dashboard:home')
+        messages.get_messages(request).used = True  
         return super().get(request, *args, **kwargs)
 
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['is_wizard'] = True
+        # This is the "Magic Line": It tells the template 'firm' is None
+        # so it stops trying to look for user.firmprofile
+        context['firm'] = None 
         return context
 
 
@@ -153,7 +172,7 @@ class FirmSetupWizardView(LoginRequiredMixin, CreateView):
 # -----------------------------
 class DashboardRedirectView(LoginRequiredMixin, TemplateView):
     def get(self, request, *args, **kwargs):
-        if not hasattr(request.user, 'firm') or request.user.firm is None:
+        if not hasattr(request.user, 'firmprofile') or request.user.firmprofile is None:
             return redirect('users:firm_wizard')
         return redirect('dashboard:home')
 

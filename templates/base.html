@@ -99,7 +99,12 @@
                                  class="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 animate-fade-in">
                                 <div class="px-4 py-2 border-b border-slate-100 mb-1">
                                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Organization</p>
-                                    <p class="text-sm font-semibold text-slate-900 truncate">{{ user.firmprofile.firm_name|default:"Personal" }}</p>
+                                    <p class="text-sm font-semibold text-slate-900 truncate">
+									{% if user.firmprofile %}
+    {{ user.firmprofile.firm_name }}
+{% else %}
+    Setup Organization
+{% endif %}</p>
                                 </div>
                                 <a href="{% url 'users:profile' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">User Settings</a>
                                 <a href="{% url 'users:firm_settings' %}" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Firm Configuration</a>
