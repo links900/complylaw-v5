@@ -1,0 +1,277 @@
+<!--templates\dashboard\home.html-->
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard – ComplyLaw{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12 px-4">
+    <div class="max-w-7xl mx-auto space-y-12">
+
+        <div class="text-center">
+            <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
+                Welcome back{% if user.get_full_name %}, {{ user.get_full_name }}{% elif user.email %}, {{ user.email|truncatechars:20 }}{% else %}, Legal Pro{% endif %}!
+            </h1>
+            <p class="mt-4 text-xl text-gray-600">
+				Compliance posture for 
+				<span class="font-bold text-indigo-600">
+					{{ firm.firm_name|default:"Your Firm" }}
+				</span>
+			</p>
+        </div>
+
+        {% if firm %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white rounded-3xl shadow-xl p-8 border border-indigo-100 transform hover:scale-105 transition duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Active Firm</p>
+                            <h3 class="text-2xl font-bold text-gray-800 mt-2">{{ firm.firm_name }}</h3>
+                            <p class="text-sm text-gray-500 mt-1">{{ firm.domain }}</p>
+                        </div>
+                        <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0H5m0 0h2"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-80">Risk Alerts</p>
+                            <p class="text-5xl font-black mt-3">{{ unread_alerts|default:"0" }}</p>
+                            <p class="text-xs mt-2 font-medium opacity-90">Requires Attention</p>
+                        </div>
+                        <div class="text-white/30">
+                            <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-900 rounded-3xl shadow-xl p-8 text-white transform hover:scale-105 transition duration-300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-300">Manual Audit</p>
+                            <p class="text-5xl font-black mt-3">{{ completion_percentage }}%</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                <p class="text-[10px] font-bold text-indigo-200 tracking-tight uppercase">In Progress</p>
+                            </div>
+                        </div>
+                        <div class="text-indigo-700">
+                            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if submission %}
+            <section id="roadmap-container" 
+                     hx-get="{% url 'checklists:roadmap' submission.scan.scan_id %}"
+                     hx-trigger="load, responseUpdated from:body"
+                     class="animate-fade-in">
+                {% include 'checklists/risk_roadmap.html' %}
+            </section>
+            {% endif %}
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900">Risk Severity Matrix</h3>
+                            <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Impact vs Likelihood</p>
+                        </div>
+                        <span class="text-[10px] font-black bg-slate-100 px-3 py-1 rounded-full text-slate-500 uppercase tracking-widest">Live Matrix</span>
+                    </div>
+
+                    <div class="grid grid-cols-5 grid-rows-5 gap-3 h-72">
+                        {% for row in "54321"|make_list %}
+                            {% for col in "12345"|make_list %}
+                                <div class="rounded-xl flex items-center justify-center text-[10px] font-black transition-all hover:scale-110 cursor-help
+                                    {% if row == '5' and col == '5' %}bg-red-600 text-white shadow-lg shadow-red-200
+                                    {% elif row|add:col > 7 %}bg-orange-500 text-white
+                                    {% elif row|add:col > 5 %}bg-amber-400 text-amber-900
+                                    {% else %}bg-emerald-100 text-emerald-700{% endif %}">
+                                    {% if row == '5' and col == '5' %}CRIT{% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                    <div class="flex justify-between mt-6 px-4">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Likelihood &rarr;</span>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] transform -rotate-90">Impact &rarr;</span>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl group-hover:bg-indigo-500/40 transition duration-500"></div>
+                        
+                        {% if top_priority_issue %}
+                            <p class="text-rose-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                <span class="flex h-2 w-2 rounded-full bg-rose-500 animate-pulse"></span>
+                                Priority Vulnerability
+                            </p>
+                            <h4 class="text-2xl font-bold mt-4 leading-tight">
+                                {{ top_priority_issue.title|default:top_priority_issue.name|default:"Security Finding" }}
+                            </h4>
+                            <p class="text-sm text-slate-400 mt-4 leading-relaxed">
+                                {{ top_priority_issue.description|truncatechars:100|default:"High severity risk detected during the automated scanning process." }}
+                            </p>
+                            <a href="{% url 'scanner:scan_detail' last_scan.scan_id %}" 
+                               class="mt-8 block text-center bg-rose-600 py-4 rounded-2xl font-bold text-sm hover:bg-rose-500 transition shadow-lg shadow-rose-900/40">
+                                Remediate Now
+                            </a>
+                        {% else %}
+                            <p class="text-indigo-400 text-[10px] font-black uppercase tracking-widest">System Health</p>
+                            <h4 class="text-2xl font-bold mt-4 leading-tight">No Critical Threats</h4>
+                            <p class="text-sm text-slate-400 mt-4 leading-relaxed">Your latest scan didn't detect any immediate critical risks. Keep up the compliance standards.</p>
+                            <button hx-get="{% url 'scanner:run_modal' %}" hx-target="#modal" 
+                               class="mt-8 w-full block text-center bg-indigo-600 py-4 rounded-2xl font-bold text-sm hover:bg-indigo-500 transition shadow-lg shadow-indigo-900">
+                                Run New Scan
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Risk Trend</h4>
+                        <div class="space-y-4">
+                            {% for scan in recent_scans %}
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">{{ scan.domain|truncatechars:15 }}</p>
+                                    <p class="text-[10px] text-gray-400">{{ scan.scan_date|date:"M d" }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-black {% if scan.risk_score > 70 %}text-rose-600{% else %}text-indigo-600{% endif %}">
+                                        {{ scan.risk_score|default:"0"|floatformat:0 }}%
+                                    </p>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <p class="text-xs text-gray-400 italic">No automated scans yet.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-gray-100">
+                <div class="px-8 py-6 bg-indigo-600 flex justify-between items-center">
+                    <h2 class="text-xl font-bold text-white tracking-tight">Recent Compliance Scans</h2>
+                    <a href="{% url 'scanner:scan_list' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition">View History</a>
+                </div>
+                <div class="p-8">
+                    {% if recent_scans %}
+                        <div class="space-y-4">
+                            {% for scan in recent_scans %}
+                            <div class="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-transparent hover:border-indigo-100 hover:bg-white hover:shadow-lg transition duration-300 group">
+                                <div class="flex items-center gap-6">
+                                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center font-black text-slate-300 border border-slate-100 group-hover:text-indigo-600 transition">
+                                        #{{ forloop.revcounter }}
+                                    </div>
+                                    <div>
+                                        <p class="text-lg font-bold text-slate-800 tracking-tight">{{ scan.domain }}</p>
+                                        <p class="text-xs text-slate-400 font-medium">{{ scan.scan_date|date:"F j, Y" }} at {{ scan.scan_date|time:"g:i A" }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-10">
+                                    <span class="px-4 py-1.5 text-[10px] font-black uppercase rounded-lg
+                                        {% if scan.status == 'COMPLETED' %}bg-emerald-100 text-emerald-700
+                                        {% elif scan.status == 'RUNNING' %}bg-blue-100 text-blue-800 animate-pulse
+                                        {% elif scan.status == 'FAILED' %}bg-rose-100 text-rose-700
+                                        {% else %}bg-gray-100 text-gray-700{% endif %}">
+                                        {{ scan.get_status_display }}
+                                    </span>
+                                    <div class="text-right">
+                                        <p class="text-2xl font-black text-slate-900">{{ scan.risk_score|default:"0"|floatformat:1 }}%</p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Risk Score</p>
+                                    </div>
+									
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-20">
+                            <h3 class="text-2xl font-bold text-gray-300">No scans found</h3>
+                            <button hx-get="{% url 'scanner:run_modal' %}" hx-target="#modal" class="mt-6 bg-indigo-600 text-white px-8 py-3 rounded-2xl font-bold shadow-xl shadow-indigo-100">Run First Scan</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        {% else %}
+            <div class="max-w-4xl mx-auto py-12 animate-fade-in">
+                <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-indigo-50">
+                    <div class="grid grid-cols-1 md:grid-cols-2">
+                        
+                        <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-12 text-white flex flex-col justify-between">
+                            <div>
+                                <div class="inline-flex items-center px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-bold uppercase tracking-widest mb-6">
+                                    Step 1 of 2: Initialization
+                                </div>
+                                <h2 class="text-4xl font-black leading-tight mb-4">Finalize your <br>Account Setup</h2>
+                                <p class="text-indigo-100 text-lg opacity-80">Join 500+ firms using ComplyLaw to automate their audit readiness.</p>
+                            </div>
+
+                            <div class="space-y-6 mt-12">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-emerald-400/20 flex items-center justify-center text-emerald-400">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <p class="font-bold">Account Created</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white border-2 border-dashed border-white/30">
+                                        <span class="text-sm font-black">2</span>
+                                    </div>
+                                    <p class="font-bold opacity-60">Firm Profile Setup</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-12 flex flex-col justify-center text-center md:text-left">
+                            <div class="mb-8">
+                                <div class="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mb-6 mx-auto md:mx-0">
+                                    <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0H5m0 0h2"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-2xl font-bold text-slate-900 mb-4">Where should we send your reports?</h3>
+                                <p class="text-slate-500 leading-relaxed">To unlock the Risk Severity Matrix and Automated Scans, we need to associate your account with a Law Firm profile.</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <a href="{% url 'users:firm_wizard' %}" class="group block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-5 px-8 rounded-2xl transition-all shadow-xl shadow-indigo-200 text-center">
+                                    <span class="flex items-center justify-center gap-2">
+                                        Configure Firm Profile
+                                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                    </span>
+                                </a>
+                                <p class="text-center text-xs text-slate-400">Estimated time: <span class="font-bold">under 60 seconds</span></p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                
+                <div class="mt-12 text-center">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-8">Trusted by Global Legal Teams</p>
+                    <div class="flex justify-center items-center gap-12 opacity-30 grayscale">
+                        <span class="text-2xl font-black italic">LEXIS</span>
+                        <span class="text-2xl font-black italic">JUSTICE</span>
+                        <span class="text-2xl font-black italic">COURTLY</span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+
+    </div>
+</div>
+
+<div id="modal"></div>
+{% endblock %}
