@@ -1,3 +1,4 @@
+# scanner/scanner_tasks/gdpr.py
 # scanner_tasks/gdpr.py
 
 from .helpers import _find_link, _fetch_page_text

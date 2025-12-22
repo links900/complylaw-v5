@@ -1,3 +1,4 @@
+# checklists/management/commands/seed_cmmc.py
 from django.core.management.base import BaseCommand
 from checklists.models import ChecklistTemplate, RiskImpact
 

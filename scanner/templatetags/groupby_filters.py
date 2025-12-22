@@ -1,3 +1,4 @@
+# scanner/templatetags/groupby_filters.py
 # scanner/templatetags/scan_filters.py
 from django import template
 from itertools import groupby

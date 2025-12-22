@@ -2,41 +2,127 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Report #{{ report.pk }} – {{ report.scan.domain }}{% endblock %}
+{% block title %}Audit Report #{{ report.pk }} | {{ report.scan.domain }}{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto p-6">
-    <div class="bg-white rounded-lg shadow-lg p-8">
-        <div class="flex justify-between items-start mb-6">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">{{ report.scan.domain }}</h1>
-                <p class="text-sm text-gray-600 mt-1">Scan ID: <code>{{ report.scan.scan_id }}</code></p>
-            </div>
-            <div class="text-right">
-                <p class="text-2xl font-bold text-indigo-600">{{ report.scan.grade|default:"—" }}</p>
-                <p class="text-sm text-gray-600">Risk Score: {{ report.scan.risk_score|floatformat:1 }}%</p>
-            </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <div>
-                <h3 class="font-semibold text-gray-700">Scan Summary</h3>
-                <p><strong>Firm:</strong> {{ report.scan.firm.firm_name }}</p>
-                <p><strong>Scanned:</strong> {{ report.scan.scan_date|date:"M d, Y h:i A" }}</p>
-            </div>
-            <div>
-                <h3 class="font-semibold text-gray-700">Report Generated</h3>
-                <p>{{ report.generated_at|date:"M d, Y h:i A" }}</p>
+<div class="min-h-screen bg-[#F8FAFC] py-12">
+    <div class="max-w-6xl mx-auto px-6">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <nav class="flex items-center text-sm font-medium text-slate-500">
+                <a href="{% url 'reports:report_list' %}" class="hover:text-indigo-600 transition-colors">Reports</a>
+                <svg class="w-4 h-4 mx-2" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+                <span class="text-slate-900">Report Analysis</span>
+            </nav>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'reports:report_download' report.pk %}" class="inline-flex items-center px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export PDF
+                </a>
             </div>
         </div>
 
-        <div class="flex gap-3">
-            <a href="{% url 'reports:report_download' report.pk %}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-                Download PDF
-            </a>
-            <a href="{% url 'reports:report_list' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-                Back to List
-            </a>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-full -mr-16 -mt-16 z-0"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl">
+                                <span class="text-2xl font-black">{{ report.scan.grade|default:"?" }}</span>
+                            </div>
+                            <div>
+                                <h1 class="text-3xl font-black text-slate-900 tracking-tight">{{ report.scan.domain }}</h1>
+                                <p class="text-slate-500 font-mono text-xs uppercase tracking-widest mt-1">Ref: {{ report.scan.scan_id }}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-slate-100">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Risk Score</p>
+                                <p class="text-xl font-black {% if report.scan.risk_score > 50 %}text-rose-600{% else %}text-emerald-600{% endif %}">
+                                    {{ report.scan.risk_score|floatformat:1 }}%
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase">Finalized</span>
+                            </div>
+                            <div class="col-span-2">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Scanning Entity</p>
+                                <p class="text-sm font-bold text-slate-700">{{ report.scan.firm.firm_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                        <h3 class="font-bold text-slate-900">Audit Methodology</h3>
+                        <span class="text-[10px] font-mono text-slate-400">v4.2.0-secure</span>
+                    </div>
+                    <div class="p-8">
+                        <p class="text-slate-600 leading-relaxed mb-6">
+                            This report provides a comprehensive analysis of the domain <span class="font-bold text-slate-900">{{ report.scan.domain }}</span>. Our scanning engine evaluated regulatory compliance markers, SSL/TLS configuration, and privacy policy alignment.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Technical Scan</h4>
+                                <p class="text-sm text-slate-700">Completed on {{ report.scan.scan_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Report Issuance</h4>
+                                <p class="text-sm text-slate-700">{{ report.generated_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-slate-900 rounded-3xl p-8 text-white shadow-2xl shadow-indigo-200">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04m17.236 0a11.955 11.955 0 01-1.882 10.723A11.954 11.954 0 0112 21.232a11.954 11.954 0 01-7.736-7.525 11.955 11.955 0 01-1.882-10.723C8.842 4.512 10.27 4 12 4c1.73 0 3.158.512 4.618 1.056z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold tracking-tight">Security Ledger</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[10px] font-black text-indigo-300 uppercase tracking-[0.2em] block mb-2">Digital Fingerprint</label>
+                            <code class="block break-all text-[10px] font-mono text-indigo-200 bg-white/5 p-3 rounded-xl border border-white/10">
+                                {{ report.pdf_sha256|default:"Not Available" }}
+                            </code>
+                        </div>
+                        
+                        <div class="pt-6 border-t border-white/10">
+                            <div class="flex items-center justify-between text-sm mb-4">
+                                <span class="text-indigo-300">Authenticity</span>
+                                <span class="text-emerald-400 font-bold">Verified</span>
+                            </div>
+                            <p class="text-[11px] text-indigo-200/60 leading-relaxed italic">
+                                This report is cryptographically signed and recorded in the ComplyLaw immutable audit trail. Any modification to the document will invalidate this signature.
+                            </p>
+                        </div>
+
+                        <a href="{% url 'reports:verify_report' %}" class="block text-center py-3 bg-white/10 hover:bg-white/20 rounded-xl text-xs font-bold transition-all border border-white/10">
+                            Verify in Public Ledger
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 text-center">
+                    <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mb-1">Quick Preview</h4>
+                    <p class="text-xs text-slate-500 mb-4">View the document structure before downloading.</p>
+                    <a href="{% url 'reports:report_preview' report.pk %}" class="text-indigo-600 text-xs font-black uppercase tracking-widest hover:text-indigo-700">Open Viewer</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>

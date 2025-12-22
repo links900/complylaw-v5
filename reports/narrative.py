@@ -1,3 +1,4 @@
+# reports/narrative.py
 #reports\narrative.py
 class NarrativeService:
     @staticmethod

@@ -1,3 +1,4 @@
+# scanner/tasks - Combined Original.py
 # scanner/tasks.py — FULL COMPLIANCE + OWASP TOP 10 SCANNER
 # Fixed: expiry = = → expiry =
 # Includes: GDPR, OWASP, ISO 27001, PCI, HIPAA, SOC 2, CIS, Nmap, Nikto

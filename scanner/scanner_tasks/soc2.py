@@ -1,3 +1,4 @@
+# scanner/scanner_tasks/soc2.py
 # scanner_tasks/soc2.py
 
 def check_soc2_access_reviews(domain: str):

@@ -1,4 +1,5 @@
-@#checklists\signals.py
+# checklists/signals.py
+
 receiver(pre_save, sender=ChecklistResponse)
 def log_audit_change(sender, instance, **kwargs):
     if instance.pk:
