@@ -2,224 +2,196 @@
 
 <!DOCTYPE html>
 {% load static %}
-
-
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ComplyLaw – Audit-Ready in 30 Days</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Inter', sans-serif; }</style>
-  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
-	<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
-	<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
-	<link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
-	<link rel="manifest" href="{% static 'site.webmanifest' %}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ComplyLaw – Audit-Ready in 30 Days</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .hero-gradient { background: radial-gradient(circle at 50% 50%, #eef2ff 0%, #ffffff 100%); }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<body class="bg-white text-slate-900 antialiased">
 
-  <nav class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-      <!--<h1 class="text-2xl font-bold text-indigo-600">ComplyLaw</h1> -->
-	  
-	  <img class="text-2xl font-bold text-indigo-600" src="{% static 'img/logo.png' %}" alt="Logo" style="width: 140px; height: auto;">
-
-      <div class="space-x-4">
-        <a href="{% url 'account_login' %}" class="text-indigo-600 font-medium hover:text-indigo-800">Sign In</a>
-        <a href="{% url 'account_signup' %}" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">Get Started Free</a>
-      </div>
-    </div>
-  </nav>
-
-  <header class="text-center py-20 px-4">
-    <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-      Never Fail a Compliance Check & Cyber Audit Again
-    </h1>
-    <p class="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-	   ComplyLaw automatically generates court-defensible cybersecurity and compliance reports for small firms, without consultants.
-      <!--Automated compliance tracking for small law firms. Prove MFA, backups, and policies in one click. -->
-    </p>
-    <div class="space-x-4">
-      <a href="#pricing" class="bg-indigo-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-indigo-700 transition">
-        Start Free Trial
-      </a>
-      <a href="#demo" class="bg-white text-indigo-600 border-2 border-indigo-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-indigo-50 transition">
-        Watch Demo
-      </a>
-    </div>
-  </header>
-
-  <section class="py-16 bg-white">
-    <div class="max-w-6xl mx-auto px-4 text-center">
-      <h2 class="text-3xl font-bold mb-8">Trusted by Law Firms Nationwide</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 opacity-50">
-        <div class="bg-gray-200 border-2 border-dashed rounded-xl h-20"></div>
-        <div class="bg-gray-200 border-2 border-dashed rounded-xl h-20"></div>
-        <div class="bg-gray-200 border-2 border-dashed rounded-xl h-20"></div>
-        <div class="bg-gray-200 border-2 border-dashed rounded-xl h-20"></div>
-      </div>
-    </div>
-  </section>
-
-<!----------------------------------------------------->
-<section id="pricing" class="py-24 bg-gray-50">
-  <div class="max-w-7xl mx-auto px-6 text-center">
-    <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-      Transparent, Risk-Free Pricing
-    </h2>
-    <p class="text-xl text-gray-600 mb-16">Start protecting your firm today • 14-day free trial • No credit card required • Cancel anytime</p>
-
-    <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-
-      <!-- BASIC PLAN -->
-      <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
-        <div class="p-8 flex-1 flex flex-col">
-          <h3 class="text-2xl font-bold text-gray-900 mb-3">Basic</h3>
-          <div class="mb-8">
-            <span class="text-5xl font-bold text-gray-900">$99</span>
-            <span class="text-xl text-gray-500">/month</span>
-          </div>
-          <ul class="text-left space-y-3 mb-10 text-gray-700 flex-1">
-            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Weekly Website Security Scan</li>
-            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> GDPR + ISO 27001 + OWASP + PCI DSS Compliance Findings</li>
-            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Manual Task Tracking</li>
-
-            <li class="flex items-start">
-              <svg class="w-5 h-5 text-green-500 mr-3 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              <div>
-                  <p class="font-medium text-slate-800">PDF Compliance Report</p>
-                  <ul class="mt-2 ml-4 space-y-1 text-sm text-slate-600 list-disc">
-                      <li>Unique Report ID for traceability</li>
-                      <li>QR-based public verification</li>
-                      <li>Insurer-aligned risk score</li>
-                      <li>Executive summary for decision-makers</li>
-                  </ul>
-              </div>
-            </li>
-
-            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Public Verification Portal (no login)</li>
-            <li class="flex items-center"><svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Email Support</li>
-          </ul>
-
-          <form action="/billing/create-checkout/" method="POST" class="mt-auto space-y-4">
-            {% csrf_token %}
-            <input type="hidden" name="plan" value="basic">
-            <input 
-              type="email" 
-              name="email" 
-              placeholder="you@yourfirm.com" 
-              required
-              class="w-full px-5 py-4 border border-gray-300 rounded-xl focus:border-indigo-600 focus:outline-none transition text-gray-800 placeholder-gray-400"
-            >
-            <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-4 rounded-xl hover:bg-indigo-700 transition font-medium">
-              Start Free Trial
-            </button>
-          </form>
-          <p class="text-xs text-gray-500 mt-4">No credit card needed</p>
-        </div>
-      </div>
-
-      <!-- PROFESSIONAL PLAN -->
-      <div class="relative transform scale-105 z-10">
-        <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur-xl opacity-30"></div>
-        <div class="relative bg-white rounded-2xl shadow-2xl ring-4 ring-indigo-600 ring-opacity-30 overflow-hidden flex flex-col h-full">
-          <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 text-center">
-            <span class="text-sm font-bold tracking-wider">MOST POPULAR</span>
-          </div>
-          <div class="p-8 flex-1 flex flex-col">
-            <h3 class="text-3xl font-bold text-gray-900 mb-3">Professional</h3>
-            <div class="mb-8">
-              <span class="text-5xl font-bold text-gray-900">$499</span>
-              <span class="text-xl text-gray-500">/month</span>
-            </div>
-            <ul class="text-left space-y-3 mb-10 text-gray-700 flex-1">
-              <li class="flex items-center"><svg class="w-6 h-6 text-indigo-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Daily Website Security Scan</li>
-              <li class="flex items-center"><svg class="w-6 h-6 text-indigo-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> GDPR + ISO 27001 + OWASP + PCI DSS + CCPA + SOC 2 Compliance Findings</li>
-              <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Automated Task Tracking</li>
-
-              <li class="flex items-start">
-                <svg class="w-5 h-5 text-indigo-500 mr-3 mt-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                </svg>
-                <div>
-                    <p class="font-medium text-slate-800">Beautiful Branded PDF Compliance Reports</p>
-                    <ul class="mt-2 ml-4 space-y-1 text-sm text-slate-600 list-disc">
-                        <li>Unique Report ID for traceability</li>
-                        <li>QR-based public verification</li>
-                        <li>Insurer-aligned risk score</li>
-                        <li>Executive summary for decision-makers</li>
-                    </ul>
+    <nav class="fixed top-0 w-full z-50 glass">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-8">
+                <img src="{% static 'img/logo.png' %}" alt="ComplyLaw" class="h-10 w-auto">
+                <div class="hidden md:flex gap-6 text-sm font-semibold text-slate-600">
+                    <a href="#features" class="hover:text-indigo-600 transition">Features</a>
+                    <a href="#how-it-works" class="hover:text-indigo-600 transition">Methodology</a>
+                    <a href="#pricing" class="hover:text-indigo-600 transition">Pricing</a>
                 </div>
-              </li>
-
-              <li class="flex items-center"><svg class="w-5 h-5 text-indigo-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Public Verification Portal (no login)</li>
-              <li class="flex items-center"><svg class="w-6 h-6 text-indigo-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Recurring Tasks</li>
-              <li class="flex items-center"><svg class="w-6 h-6 text-indigo-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Priority Support</li>
-            </ul>
-
-            <form action="/billing/create-checkout/" method="POST" class="mt-auto space-y-4">
-              {% csrf_token %}
-              <input type="hidden" name="plan" value="pro">
-              <input 
-                type="email" 
-                name="email" 
-                placeholder="you@yourfirm.com" 
-                required
-                class="w-full px-5 py-4 border-2 border-indigo-600 rounded-xl focus:border-indigo-800 focus:outline-none transition font-medium"
-              >
-              <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-5 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition transform hover:scale-105 shadow-lg text-lg">
-                Get Compliance Report Now
-              </button>
-            </form>
-            <p class="text-xs text-gray-500 mt-4 font-medium">Used by 200+ growing law firms • Most Popular Plan</p>
-          </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'account_login' %}" class="text-sm font-bold text-slate-700 hover:text-indigo-600">Log In</a>
+                <a href="{% url 'account_signup' %}" class="bg-indigo-600 text-white px-5 py-2.5 rounded-full text-sm font-extrabold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                    Start Scanning Free
+                </a>
+            </div>
         </div>
-      </div>
+    </nav>
 
+    <section class="relative pt-32 pb-20 overflow-hidden hero-gradient">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold mb-6">
+                <span class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                v5.0 Global Compliance Engine Now Live
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-8">
+                The Gold Standard in <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Legal Cyber-Compliance.</span>
+            </h1>
+            <p class="text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
+                Autonomous audits for modern law firms. Generate court-defensible security reports in 60 seconds, not 60 days.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-16">
+                <a href="#pricing" class="w-full sm:w-auto bg-slate-900 text-white px-10 py-5 rounded-2xl text-lg font-bold hover:bg-indigo-600 transition-all shadow-2xl">
+                    Get Started Now
+                </a>
+                <a href="#demo" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-white border border-slate-200 px-10 py-5 rounded-2xl text-lg font-bold hover:bg-slate-50 transition-all">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/></svg>
+                    Watch Product Tour
+                </a>
+            </div>
 
-	  <!-- ENTERPRISE PLAN -->
-		<div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col h-full">
-		  <div class="p-8 flex-1 flex flex-col">
-			<h3 class="text-2xl font-bold text-gray-900 mb-3">Enterprise</h3>
-			<div class="mb-8">
-			  <span class="text-4xl font-bold text-gray-900">Custom</span>
-			  <span class="text-xl text-gray-500 ml-2">/month</span>
-			</div>
-			<ul class="text-left space-y-3 mb-10 text-gray-700 flex-1">
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Unlimited Website Security Scans</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> On-Demand Compliance Standards (any framework)</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> On-Demand Audits & Evaluations</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> White-Label Compliance Reports</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Dedicated Client Portal + API Access</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Dedicated Compliance Officer for Your Firm</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> SIEM Export & Automated Alerts</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Auto-Sync Google Workspace & Cloud Apps</li>
-			  <li class="flex items-center"><svg class="w-5 h-5 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg> Priority Onboarding & SLA Guaranteed Support</li>
-			</ul>
+            <div class="relative max-w-5xl mx-auto mt-10 animate-float">
+                <div class="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full"></div>
+                <div class="relative bg-slate-900 rounded-t-3xl p-2 border border-slate-800 shadow-2xl">
+                    <img src="https://images.unsplash.com/photo-1551288049-bbbda536339a?auto=format&fit=crop&q=80&w=2070" alt="Interface" class="rounded-t-2xl opacity-90 grayscale hover:grayscale-0 transition duration-700">
+                </div>
+            </div>
+        </div>
+    </section>
 
-			<div class="mt-auto text-center">
-			  <a href="mailto:sales@complylaw.com" class="inline-block w-full bg-gray-900 text-white font-semibold py-4 rounded-xl hover:bg-black transition">
-				Contact Sales
-			  </a>
-			  <p class="text-xs text-gray-500 mt-4">Custom pricing • SLA • Onboarding • Perfect for large or multi-office law firms</p>
-			</div>
-		  </div>
-		</div>
-	</div>
- </div>
-</section>
-<!----------------------------------------------------->
+    <section class="py-12 border-y border-slate-100 bg-slate-50/50">
+        <div class="max-w-7xl mx-auto px-6">
+            <p class="text-center text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-10">Trusted by top-tier legal entities</p>
+            <div class="flex flex-wrap justify-center items-center gap-12 grayscale opacity-60">
+                <span class="text-2xl font-black italic text-slate-900">VERIDIAN</span>
+                <span class="text-2xl font-black italic text-slate-900">LEX_SECURE</span>
+                <span class="text-2xl font-black italic text-slate-900">GLOBAL_LAW</span>
+                <span class="text-2xl font-black italic text-slate-900">EQUITY_PARTNERS</span>
+            </div>
+        </div>
+    </section>
 
+    <section id="features" class="py-24">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Enterprise Infrastructure for Small Firms</h2>
+                <p class="text-slate-600 font-medium">We do the work of a $300/hr consultant, autonomously.</p>
+            </div>
+            
+            <div class="grid grid-cols-12 gap-6">
+                <div class="col-span-12 md:col-span-8 bg-slate-900 rounded-[2.5rem] p-10 text-white overflow-hidden relative group">
+                    <div class="relative z-10">
+                        <span class="bg-indigo-500 text-[10px] font-black px-3 py-1 rounded-full uppercase mb-4 inline-block">Real-time Detection</span>
+                        <h3 class="text-3xl font-bold mb-4">Daily Vulnerability <br>Intelligence</h3>
+                        <p class="text-slate-400 max-w-sm mb-6">Our engine scans your infrastructure daily for 14+ global frameworks including GDPR, ISO 27001, and SOC2.</p>
+                        <ul class="space-y-2 text-sm font-semibold text-indigo-400">
+                            <li class="flex items-center gap-2">✓ Automated Port Scanning</li>
+                            <li class="flex items-center gap-2">✓ SSL/TLS Integrity Checks</li>
+                            <li class="flex items-center gap-2">✓ OWASP Top 10 Monitoring</li>
+                        </ul>
+                    </div>
+                    <div class="absolute top-0 right-0 w-1/2 h-full bg-indigo-600/10 blur-[80px] group-hover:bg-indigo-600/20 transition-colors"></div>
+                </div>
 
- <footer class="bg-gray-800 text-white py-8 text-center">
-    <p>© 2025 ComplyLaw. All rights reserved. 
-      <a href="/privacy" class="underline hover:text-gray-300">Privacy</a> | 
-      <a href="/terms" class="underline hover:text-gray-300">Terms</a>
-    </p>
-  </footer>
+                <div class="col-span-12 md:col-span-4 bg-indigo-50 rounded-[2.5rem] p-10 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 bg-indigo-600 rounded-2xl mb-6 flex items-center justify-center shadow-lg shadow-indigo-200">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">Audit-Ready PDFs</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed">Instant reports with QR verification for insurance and client vetting.</p>
+                    </div>
+                    <div class="mt-8 pt-8 border-t border-indigo-100">
+                        <span class="text-xs font-black text-indigo-600 uppercase tracking-widest">Verify Instantly →</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="py-24 bg-slate-900 relative overflow-hidden">
+        <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+            <h2 class="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">Scaled for Every Legal Entity</h2>
+            <p class="text-slate-400 mb-16 max-w-2xl mx-auto">Start free. Upgrade as you grow. No hidden consultant fees.</p>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-slate-800/50 border border-slate-700 p-10 rounded-[3rem] text-left hover:border-indigo-500/50 transition">
+                    <h3 class="text-xl font-bold text-white mb-2">Basic</h3>
+                    <p class="text-5xl font-black text-white mb-8">$99<span class="text-lg text-slate-500 font-medium">/mo</span></p>
+                    <ul class="space-y-4 mb-10 text-slate-400 text-sm font-medium">
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> Weekly Website Scan</li>
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> 4 Compliance Frameworks</li>
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> Basic PDF Exports</li>
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> Email Support</li>
+                    </ul>
+                    <a href="{% url 'account_signup' %}" class="block w-full text-center py-4 rounded-2xl bg-white text-slate-900 font-bold hover:bg-indigo-50 transition">Get Started</a>
+                </div>
+
+                <div class="bg-indigo-600 p-10 rounded-[3rem] text-left relative transform scale-105 shadow-2xl shadow-indigo-600/20">
+                    <div class="absolute top-0 right-10 -translate-y-1/2 bg-white text-indigo-600 text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl">Best Value</div>
+                    <h3 class="text-xl font-bold text-white mb-2">Professional</h3>
+                    <p class="text-5xl font-black text-white mb-8">$499<span class="text-lg text-indigo-200 font-medium">/mo</span></p>
+                    <ul class="space-y-4 mb-10 text-white/80 text-sm font-medium">
+                        <li class="flex items-center gap-3"><span>✔</span> Daily Automated Scans</li>
+                        <li class="flex items-center gap-3"><span>✔</span> Full Compliance Suite (SOC2/ISO)</li>
+                        <li class="flex items-center gap-3"><span>✔</span> Branded White-Label Reports</li>
+                        <li class="flex items-center gap-3"><span>✔</span> Priority 1h Support</li>
+                    </ul>
+                    <a href="{% url 'account_signup' %}" class="block w-full text-center py-4 rounded-2xl bg-white text-indigo-600 font-bold hover:shadow-xl transition shadow-indigo-900/50">Start Free Trial</a>
+                </div>
+
+                <div class="bg-slate-800/50 border border-slate-700 p-10 rounded-[3rem] text-left">
+                    <h3 class="text-xl font-bold text-white mb-2">Enterprise</h3>
+                    <p class="text-5xl font-black text-white mb-8">Custom</p>
+                    <ul class="space-y-4 mb-10 text-slate-400 text-sm font-medium">
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> Unlimited Scans</li>
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> API & SIEM Integration</li>
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> Multi-Office Dashboard</li>
+                        <li class="flex items-center gap-3"><span class="text-indigo-500">✔</span> Dedicated Compliance Officer</li>
+                    </ul>
+                    <a href="mailto:sales@complylaw.com" class="block w-full text-center py-4 rounded-2xl border border-slate-600 text-white font-bold hover:bg-slate-700 transition">Contact Sales</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-50 py-20">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12">
+            <div class="col-span-2">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" class="h-8 mb-6 grayscale">
+                <p class="text-slate-500 max-w-sm mb-6 font-medium">The world's first autonomous compliance platform designed specifically for the legal industry.</p>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">© 2025 ComplyLaw International</p>
+            </div>
+            <div>
+                <h4 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-widest">Platform</h4>
+                <ul class="text-slate-500 text-sm space-y-2 font-medium">
+                    <li><a href="#" class="hover:text-indigo-600">Scanner Engine</a></li>
+                    <li><a href="#" class="hover:text-indigo-600">Reporting API</a></li>
+                    <li><a href="#" class="hover:text-indigo-600">Legal Frameworks</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-widest">Company</h4>
+                <ul class="text-slate-500 text-sm space-y-2 font-medium">
+                    <li><a href="#" class="hover:text-indigo-600">Privacy Policy</a></li>
+                    <li><a href="#" class="hover:text-indigo-600">Terms of Service</a></li>
+                    <li><a href="#" class="hover:text-indigo-600">Security Inquiries</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>
