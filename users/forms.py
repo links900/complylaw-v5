@@ -1,13 +1,15 @@
-# users/forms.py
 import re
 import pytz
 import os
+import logging
 from django import forms
 from django.conf import settings
 from .models import FirmProfile
 
-class FirmSettingsForm(forms.ModelForm):
-    # Standard International Choices
+logger = logging.getLogger(__name__)
+
+class BaseFirmForm(forms.ModelForm):
+    """ The Core logic shared by both Wizard and Settings """
     CURRENCY_CHOICES = [('USD', 'USD ($)'), ('EUR', 'EUR (€)'), ('GBP', 'GBP (£)'), ('INR', 'INR (₹)')]
     DATE_FORMAT_CHOICES = [('%m/%d/%Y', 'MM/DD/YYYY'), ('%d/%m/%Y', 'DD/MM/YYYY'), ('%Y-%m-%d', 'YYYY-MM-DD')]
     TIMEZONE_CHOICES = [(tz, tz) for tz in pytz.common_timezones]
@@ -21,62 +23,35 @@ class FirmSettingsForm(forms.ModelForm):
         fields = [
             'firm_name', 'email', 'phone', 'domain', 
             'timezone', 'currency', 'date_format', 
-            'address', 'logo', 'subscription_tier'
+            'address', 'logo', 'subscription_tier','retention_days'
         ]
+        
+        widgets = {
+            'retention_days': forms.NumberInput(attrs={'class': 'form-input', 'min': '1'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # 1. DYNAMICALLY LOAD STANDARDS FROM FILESYSTEM
-        commands_path = os.path.join(settings.BASE_DIR, 'checklists', 'management', 'commands')
-        dynamic_choices = []
-        
-        if os.path.exists(commands_path):
-            for filename in os.listdir(commands_path):
-                if filename.startswith("seed_") and filename.endswith(".py"):
-                    # Transform 'seed_gdpr.py' -> 'GDPR'
-                    val = filename.replace("seed_", "").replace(".py", "").upper()
-                    dynamic_choices.append((val, val))
-        
-        # Fallback to GDPR if no files found
-        if not dynamic_choices:
-            dynamic_choices = [('GDPR', 'GDPR')]
-            
-        # Update the choices for the active_standard field to allow validation
-        if 'active_standard' in self.fields:
-            self.fields['active_standard'].choices = sorted(dynamic_choices)
-
-        # 2. APPLY STYLING
-        # High-contrast international grade styling
-        standard_css = (
-            "w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 "
-            "text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 "
-            "transition-all placeholder:text-slate-400 font-medium shadow-sm"
-        )
-                    
-        file_css = (
-            "block w-full text-sm text-slate-500 "
-            "file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 "
-            "file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 "
-            "hover:file:bg-indigo-100 transition-all"
-        )
+        standard_css = "w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium shadow-sm"
+        file_css = "block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
 
         for name, field in self.fields.items():
-            # Apply the appropriate CSS based on field type
-            if name == 'logo':
-                field.widget.attrs.update({'class': file_css})
-            else:
-                field.widget.attrs.update({'class': standard_css})
-            
-            # Special handling for disabled fields
+            field.widget.attrs.update({'class': file_css if name == 'logo' else standard_css})
             if name == 'subscription_tier':
                 field.disabled = True
-                field.widget.attrs.update({
-                    'class': standard_css + " bg-slate-100 cursor-not-allowed border-slate-200 text-slate-500"
-                })
-                    
+
+        # If this is a POST/submitting data, make missing fields optional
+        if self.data:
+            for name, field in self.fields.items():
+                if name not in self.data and name not in self.files:
+                    field.required = False
+
     def clean_domain(self):
-        domain = self.cleaned_data.get('domain', '').strip().lower()
+        domain = self.cleaned_data.get('domain')
+        if 'domain' not in self.data:
+            return self.instance.domain
+        domain = domain.strip().lower()
         domain = re.sub(r'^https?://', '', domain.rstrip('/')).replace('www.', '')
         if FirmProfile.objects.filter(domain=domain).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("Domain already registered.")
@@ -84,9 +59,31 @@ class FirmSettingsForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
+        if 'email' not in self.data:
+            return self.instance.email
         if FirmProfile.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError("Email already in use.")
         return email
 
-# Set the alias so the Wizard view doesn't break
-FirmProfileForm = FirmSettingsForm
+    def save(self, commit=True):
+        """ CRITICAL: Only update fields that were actually submitted in the POST request """
+        instance = super().save(commit=False)
+        if self.data:
+            # Get the list of fields actually sent in the request
+            submitted_fields = [f for f in self.fields if f in self.data or f in self.files]
+            # Only update those specific fields on the instance
+            for field in submitted_fields:
+                if hasattr(instance, field):
+                    setattr(instance, field, self.cleaned_data.get(field))
+        
+        if commit:
+            instance.save()
+        return instance
+
+class FirmProfileForm(BaseFirmForm):
+    class Meta(BaseFirmForm.Meta):
+        fields = [f for f in BaseFirmForm.Meta.fields if f != 'subscription_tier']
+
+class FirmSettingsForm(BaseFirmForm):
+    class Meta(BaseFirmForm.Meta):
+        fields = BaseFirmForm.Meta.fields + ['scan_mode', 'active_standard', 'audit_rigor']

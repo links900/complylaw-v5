@@ -1,6 +1,3 @@
-<!-- templates/users/firm_settings.html — BEAUTIFUL & PERFECTLY SIZED -->
-
-
 {% extends "base.html" %}
 {% load static %}
 
@@ -35,11 +32,12 @@
         </nav>
       </aside>
 
-      <div class="lg:col-span-9">
+      <form method="post" enctype="multipart/form-data" class="lg:col-span-9 space-y-8">
+        {% csrf_token %}
         
         {% if messages %}
           {% for message in messages %}
-            <div class="mb-6 p-4 rounded-xl flex items-center shadow-sm border
+            <div class="p-4 rounded-xl flex items-center shadow-sm border
               {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border-emerald-100
               {% else %}bg-red-50 text-red-800 border-red-100{% endif %}">
               <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -48,211 +46,202 @@
           {% endfor %}
         {% endif %}
 
-        <form method="post" enctype="multipart/form-data" class="space-y-8">
-          {% csrf_token %}
-
-          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
-            <div class="p-6 border-b border-slate-100">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <input type="hidden" name="section_name" value="Organization Identity">
+          <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
               <h2 class="text-lg font-bold text-slate-900">Organization Identity</h2>
-              <p class="text-sm text-slate-500">Essential firm information for reporting and compliance certificates.</p>
+              <p class="text-sm text-slate-500">Essential firm information for reporting.</p>
             </div>
-            
-            <div class="p-8 space-y-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-2">
-                  <label class="text-sm font-bold text-slate-700">Firm Name <span class="text-red-500">*</span></label>
-                  {{ form.firm_name }}
-                  {% if form.firm_name.errors %}<p class="text-red-600 text-xs mt-1">{{ form.firm_name.errors|join:", " }}</p>{% endif %}
-                </div>
+            <button type="submit" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-100">Save Identity</button>
+          </div>
+          
+          <div class="p-8 space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Firm Name <span class="text-red-500">*</span></label>
+                {{ form.firm_name }}
+                {% if form.firm_name.errors %}<p class="text-red-600 text-xs mt-1">{{ form.firm_name.errors|join:", " }}</p>{% endif %}
+              </div>
 
-                <div class="space-y-2">
-                  <label class="text-sm font-bold text-slate-700">Domain / URL <span class="text-red-500">*</span></label>
-                  {{ form.domain }}
-                  {% if form.domain.errors %}<p class="text-red-600 text-xs mt-1">{{ form.domain.errors|join:", " }}</p>{% endif %}
-                </div>
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Domain / URL <span class="text-red-500">*</span></label>
+                {{ form.domain }}
+                {% if form.domain.errors %}<p class="text-red-600 text-xs mt-1">{{ form.domain.errors|join:", " }}</p>{% endif %}
+              </div>
 
-                <div class="space-y-2">
-                  <label class="text-sm font-bold text-slate-700">Firm Email <span class="text-red-500">*</span></label>
-                  {{ form.email }}
-                  {% if form.email.errors %}<p class="text-red-600 text-xs mt-1">{{ form.email.errors|join:", " }}</p>{% endif %}
-                </div>
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Firm Email <span class="text-red-500">*</span></label>
+                {{ form.email }}
+                {% if form.email.errors %}<p class="text-red-600 text-xs mt-1">{{ form.email.errors|join:", " }}</p>{% endif %}
+              </div>
 
-                <div class="space-y-2">
-                  <label class="text-sm font-bold text-slate-700">Phone Number</label>
-                  {{ form.phone }}
-                  {% if form.phone.errors %}<p class="text-red-600 text-xs mt-1">{{ form.phone.errors|join:", " }}</p>{% endif %}
-                </div>
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Phone Number</label>
+                {{ form.phone }}
+                {% if form.phone.errors %}<p class="text-red-600 text-xs mt-1">{{ form.phone.errors|join:", " }}</p>{% endif %}
+              </div>
 
-                <div class="md:col-span-2 space-y-2">
-                  <label class="text-sm font-bold text-slate-700">Physical Address</label>
-                  {{ form.address }}
-                  {% if form.address.errors %}<p class="text-red-600 text-xs mt-1">{{ form.address.errors|join:", " }}</p>{% endif %}
-                </div>
+              <div class="md:col-span-2 space-y-2">
+                <label class="text-sm font-bold text-slate-700">Physical Address</label>
+                {{ form.address }}
+                {% if form.address.errors %}<p class="text-red-600 text-xs mt-1">{{ form.address.errors|join:", " }}</p>{% endif %}
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-100">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+              <div>
                 <h2 class="text-lg font-bold text-slate-900">Brand Assets</h2>
-                <p class="text-sm text-slate-500">Visual identity used for client portals and white-labeled reports.</p>
-            </div>
-            <div class="p-8">
-                <div class="flex flex-col md:flex-row items-start gap-8">
-                    <div class="w-full md:w-1/3">
-                        <div class="relative group" id="preview-container">
-                            {% if form.instance.logo %}
-                                <img src="{{ form.instance.logo.url }}" id="preview-img" class="w-full h-48 object-contain bg-slate-50 rounded-xl border-2 border-slate-100 shadow-inner p-4">
-                            {% else %}
-                                <div id="empty-preview" class="w-full h-48 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
-                                    <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    <span class="text-xs font-bold uppercase tracking-widest">No Logo</span>
-                                </div>
-                                <img id="preview-img" class="hidden w-full h-48 object-contain bg-slate-50 rounded-xl border-2 border-slate-100 shadow-inner p-4">
-                            {% endif %}
-                            
-                            {% if form.instance.logo %}
-                            <button type="button" 
-                                    hx-post="{% url 'users:clear_firm_logo' %}"
-                                    hx-confirm="Remove this logo?"
-                                    hx-target="#preview-container"
-                                    hx-swap="outerHTML"
-                                    class="absolute -top-2 -right-2 bg-white text-red-500 rounded-full p-1.5 shadow-lg border border-red-100 hover:bg-red-50 transition">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="flex-1 w-full">
-                        <label class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-400 transition-all group">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-10 h-10 mb-3 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                <p class="mb-2 text-sm text-slate-700 font-semibold">Drop new logo or click</p>
-                                <p class="text-xs text-slate-500 uppercase tracking-widest">SVG, PNG or JPG (Max 5MB)</p>
-                            </div>
-                            <input type="file" name="logo" class="hidden" id="id_logo" accept="image/*">
-                        </label>
-                        {% if form.logo.errors %}<p class="text-red-600 text-xs mt-2">{{ form.logo.errors|join:", " }}</p>{% endif %}
-                    </div>
-                </div>
-            </div>
+                <p class="text-sm text-slate-500">Visual identity used for portals and reports.</p>
+              </div>
+              <button type="submit" name="section_name" value="Brand Assets" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-100">Update Logo</button>
           </div>
+          <div class="p-8">
+              <div class="flex flex-col md:flex-row items-start gap-8">
+                  <div class="w-full md:w-1/3">
+                      <div class="relative group" id="preview-container">
+                          {% if form.instance.logo %}
+                              <img src="{{ form.instance.logo.url }}" id="preview-img" class="w-full h-48 object-contain bg-slate-50 rounded-xl border-2 border-slate-100 shadow-inner p-4">
+                          {% else %}
+                              <div id="empty-preview" class="w-full h-48 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
+                                  <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                  <span class="text-xs font-bold uppercase tracking-widest">No Logo</span>
+                              </div>
+                              <img id="preview-img" class="hidden w-full h-48 object-contain bg-slate-50 rounded-xl border-2 border-slate-100 shadow-inner p-4">
+                          {% endif %}
+                          
+                          {% if form.instance.logo %}
+                          <button type="button" 
+                                  hx-post="{% url 'users:clear_firm_logo' %}"
+                                  hx-confirm="Remove this logo?"
+                                  hx-target="#preview-container"
+                                  hx-swap="outerHTML"
+                                  class="absolute -top-2 -right-2 bg-white text-red-500 rounded-full p-1.5 shadow-lg border border-red-100 hover:bg-red-50 transition">
+                              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                          </button>
+                          {% endif %}
+                      </div>
+                  </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
-            <div class="p-6 border-b border-slate-100">
+                  <div class="flex-1 w-full">
+                      <label class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 hover:border-indigo-400 transition-all group">
+                          <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                              <svg class="w-10 h-10 mb-3 text-slate-400 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                              <p class="mb-2 text-sm text-slate-700 font-semibold">Drop new logo or click</p>
+                              <p class="text-xs text-slate-500 uppercase tracking-widest">SVG, PNG or JPG (Max 5MB)</p>
+                          </div>
+                          <input type="file" name="logo" class="hidden" id="id_logo" accept="image/*">
+                      </label>
+                      {% if form.logo.errors %}<p class="text-red-600 text-xs mt-2">{{ form.logo.errors|join:", " }}</p>{% endif %}
+                  </div>
+              </div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+              <div>
                 <h2 class="text-lg font-bold text-slate-900">Compliance & Scan Settings</h2>
-                <p class="text-sm text-slate-500">Define the depth of your automated checks and your primary framework.</p>
-            </div>
-            
-            <div class="p-8 space-y-8">
-                <div class="space-y-4">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Scan Detail Level</label>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <label class="relative flex p-4 cursor-pointer border-2 rounded-xl transition hover:bg-slate-50 border-slate-100 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
-                            <input type="radio" name="scan_mode" value="simple" class="mt-1 h-4 w-4 text-indigo-600 border-slate-300" {% if form.scan_mode.value == 'simple' or form.instance.scan_mode == 'simple' %}checked{% endif %}>
-                            <div class="ml-3">
-                                <span class="block text-sm font-bold text-slate-900">Simple Mode</span>
-                                <span class="block text-xs text-slate-500">Code, Title, Description, and Response only.</span>
-                            </div>
-                        </label>
-                        <label class="relative flex p-4 cursor-pointer border-2 rounded-xl transition hover:bg-slate-50 border-slate-100 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
-                            <input type="radio" name="scan_mode" value="detailed" class="mt-1 h-4 w-4 text-indigo-600 border-slate-300" {% if form.scan_mode.value == 'detailed' or form.instance.scan_mode == 'detailed' %}checked{% endif %}>
-                            <div class="ml-3">
-                                <span class="block text-sm font-bold text-slate-900">Detailed Mode</span>
-                                <span class="block text-xs text-slate-500">Includes Evidence logs and Recommendations.</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="space-y-4">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Regulatory Standard</label>
-                    
-                    {% if form.active_standard.errors %}
-                    <div class="p-3 bg-red-50 border border-red-100 text-red-700 text-xs rounded-lg">
-                        <strong>Invalid Selection:</strong> {{ form.active_standard.errors|join:", " }}
-                    </div>
-                    {% endif %}
-
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {% for standard in available_standards %}
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="active_standard" value="{{ standard }}" class="hidden peer" 
-                                {% if form.active_standard.value == standard or form.instance.active_standard == standard %}checked{% endif %}>
-                            <div class="px-4 py-3 text-center border-2 border-slate-100 rounded-xl peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:text-white hover:border-indigo-200 transition-all">
-                                <span class="text-sm font-bold">{{ standard }}</span>
-                            </div>
-                        </label>
-                        {% empty %}
-                        <div class="col-span-full py-4 text-center text-slate-400 text-sm italic border-2 border-dashed border-slate-100 rounded-xl">
-                            No compliance standards found in system.
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
+                <p class="text-sm text-slate-500">Define automated check depth and frameworks.</p>
+              </div>
+              <button type="submit" name="section_name" value="Compliance Settings" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-100">Save Compliance</button>
           </div>
+          
+          <div class="p-8 space-y-8">
+              <div class="space-y-4">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Scan Detail Level</label>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <label class="relative flex p-4 cursor-pointer border-2 rounded-xl transition hover:bg-slate-50 border-slate-100 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
+                          <input type="radio" name="scan_mode" value="simple" class="mt-1 h-4 w-4 text-indigo-600 border-slate-300" {% if form.scan_mode.value == 'simple' or form.instance.scan_mode == 'simple' %}checked{% endif %}>
+                          <div class="ml-3">
+                              <span class="block text-sm font-bold text-slate-900">Simple Mode</span>
+                              <span class="block text-xs text-slate-500">Code, Title, and Response only.</span>
+                          </div>
+                      </label>
+                      <label class="relative flex p-4 cursor-pointer border-2 rounded-xl transition hover:bg-slate-50 border-slate-100 has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50/30">
+                          <input type="radio" name="scan_mode" value="detailed" class="mt-1 h-4 w-4 text-indigo-600 border-slate-300" {% if form.scan_mode.value == 'detailed' or form.instance.scan_mode == 'detailed' %}checked{% endif %}>
+                          <div class="ml-3">
+                              <span class="block text-sm font-bold text-slate-900">Detailed Mode</span>
+                              <span class="block text-xs text-slate-500">Evidence logs and Recommendations.</span>
+                          </div>
+                      </label>
+                  </div>
+              </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
-            <div class="p-6 border-b border-slate-100">
+              <div class="space-y-4">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Regulatory Standard</label>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {% for standard in available_standards %}
+                      <label class="cursor-pointer group">
+                          <input type="radio" name="active_standard" value="{{ standard }}" class="hidden peer" 
+                              {% if form.active_standard.value == standard or form.instance.active_standard == standard %}checked{% endif %}>
+                          <div class="px-4 py-3 text-center border-2 border-slate-100 rounded-xl peer-checked:border-indigo-600 peer-checked:bg-indigo-600 peer-checked:text-white hover:border-indigo-200 transition-all">
+                              <span class="text-sm font-bold">{{ standard }}</span>
+                          </div>
+                      </label>
+                      {% empty %}
+                      <div class="col-span-full py-4 text-center text-slate-400 text-sm italic border-2 border-dashed border-slate-100 rounded-xl">
+                          No compliance standards found.
+                      </div>
+                      {% endfor %}
+                  </div>
+              </div>
+              
+              <div class="space-y-4 pt-6 border-t border-slate-100">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Data Retention Policy</label>
+                <div class="flex items-center gap-4">
+                  <div class="w-32">
+                    {{ form.retention_days }}
+                  </div>
+                  <span class="text-sm text-slate-600">Days</span>
+                </div>
+                <p class="text-xs text-slate-500 italic">How long compliance logs and evidence are stored before auto-deletion.</p>
+                {% if form.retention_days.errors %}
+                  <p class="text-red-600 text-xs mt-1">{{ form.retention_days.errors|join:", " }}</p>
+                {% endif %}
+              </div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+              <div>
                 <h2 class="text-lg font-bold text-slate-900">Localization</h2>
-                <p class="text-sm text-slate-500">Configure regional formats for international legal compliance.</p>
-            </div>
-            <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Primary Timezone</label>
-                    {{ form.timezone }}
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Fiscal Currency</label>
-                    {{ form.currency }}
-                </div>
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Date Format</label>
-                    {{ form.date_format }}
-                </div>
-            </div>
+                <p class="text-sm text-slate-500">Configure regional formats.</p>
+              </div>
+              <button type="submit" name="section_name" value="Localization" class="px-4 py-2 text-xs font-bold bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition shadow-md shadow-indigo-100">Save Formats</button>
           </div>
-
-          <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center">
-                <div class="p-3 bg-indigo-600 text-white rounded-xl mr-4">
-                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.477.859h4z"></path></svg>
-                </div>
-                <div>
-                    <h3 class="font-bold text-indigo-900">Current Plan: {{ form.instance.get_subscription_tier_display }}</h3>
-                    <p class="text-sm text-indigo-700">Your account is active and in good standing.</p>
-                </div>
-            </div>
-            <a href="/billing/" class="w-full md:w-auto px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition text-center shadow-lg shadow-indigo-100">
-                Manage Subscription
-            </a>
+          <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Timezone</label>
+                  {{ form.timezone }}
+              </div>
+              <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Currency</label>
+                  {{ form.currency }}
+              </div>
+              <div class="space-y-2">
+                  <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Date Format</label>
+                  {{ form.date_format }}
+              </div>
           </div>
-
-          <div class="flex items-center justify-between pt-8 border-t border-slate-200">
-            <a href="{% url 'users:profile' %}" class="text-sm font-bold text-slate-600 hover:text-slate-900 transition">
-              ← Back to Profile
-            </a>
-            <button type="submit" class="px-10 py-3 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition transform active:scale-95">
-                Save All Changes
+        </div>
+      </form>
+      <div class="lg:col-start-4 lg:col-span-9 pt-12">
+        <div class="p-6 bg-red-50 rounded-2xl border border-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="text-center md:text-left">
+                <h4 class="text-sm font-bold text-red-800 uppercase tracking-widest">Danger Zone</h4>
+                <p class="text-sm text-red-600 mt-1">Archive this firm to freeze all activity. This action is reversible by admins.</p>
+            </div>
+            <button type="button" onclick="toggleArchiveModal(true)" class="px-6 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-xl hover:bg-red-600 hover:text-white transition">
+                Archive Organization
             </button>
-          </div>
-
-          <div class="pt-12">
-            <div class="p-6 bg-red-50 rounded-2xl border border-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="text-center md:text-left">
-                    <h4 class="text-sm font-bold text-red-800 uppercase tracking-widest">Danger Zone</h4>
-                    <p class="text-sm text-red-600 mt-1">Archive this firm to freeze all activity. This action is reversible by admins.</p>
-                </div>
-                <button type="button" onclick="toggleArchiveModal(true)" class="px-6 py-2 text-sm font-bold text-red-600 bg-white border border-red-200 rounded-xl hover:bg-red-600 hover:text-white transition">
-                    Archive Organization
-                </button>
-            </div>
-          </div>
-
-        </form>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -263,7 +252,7 @@
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
         </div>
         <h3 class="text-xl font-bold text-slate-900 text-center mb-2">Archive Organization?</h3>
-        <p class="text-slate-500 text-center text-sm mb-8">This will immediately suspend access for all <strong>{{ firm.users.count }} team members</strong>. All active compliance monitoring will be paused.</p>
+        <p class="text-slate-500 text-center text-sm mb-8">This will immediately suspend access for all team members. All active compliance monitoring will be paused.</p>
         
         <div class="flex flex-col gap-3">
             <form method="post" action="{% url 'users:archive_firm' %}">
@@ -280,7 +269,6 @@
 </div>
 
 <style>
-    /* Styling Django widgets to match UI */
     input[type="text"], input[type="email"], input[type="url"], input[type="tel"], textarea, select {
         @apply w-full rounded-lg border-slate-300 text-sm py-2.5 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all;
     }
@@ -293,7 +281,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const previewImg = document.getElementById('preview-img');
     const emptyPreview = document.getElementById('empty-preview');
 
-    // Live Logo Preview
     input?.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -308,7 +295,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// Archive Modal Control
 function toggleArchiveModal(show) {
     const modal = document.getElementById('archiveModal');
     if (show) {
