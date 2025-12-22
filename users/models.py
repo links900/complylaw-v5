@@ -9,6 +9,7 @@ from django.conf import settings
 from django.core.validators import RegexValidator
 
 class FirmProfile(models.Model):
+    
     SUBSCRIPTION_CHOICES = [
         ('trial', 'Trial'),
         ('basic', 'Basic'),
