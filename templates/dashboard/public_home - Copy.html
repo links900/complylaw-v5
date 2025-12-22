@@ -25,7 +25,7 @@
                 <img src="{% static 'img/logo.png' %}" alt="ComplyLaw" class="h-10 w-auto">
                 <div class="hidden md:flex gap-6 text-sm font-semibold text-slate-600">
                     <a href="#features" class="hover:text-indigo-600 transition">Features</a>
-                    <a href="#how-it-works" class="hover:text-indigo-600 transition">How it Works</a>
+                    <a href="#how-it-works" class="hover:text-indigo-600 transition">Methodology</a>
                     <a href="#pricing" class="hover:text-indigo-600 transition">Pricing</a>
                 </div>
             </div>
@@ -81,57 +81,7 @@
         </div>
     </section>
 
-    <section id="how-it-works" class="py-24 bg-white">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-20">
-                <h2 class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-3">The Methodology</h2>
-                <h3 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Three Steps to Total Compliance</h3>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-                <div class="hidden md:block absolute top-1/4 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-100 via-indigo-500 to-indigo-100 z-0"></div>
-
-                <div class="relative z-10 text-center">
-                    <div class="w-20 h-20 bg-white border-4 border-indigo-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
-                        <span class="text-2xl font-black text-slate-900">01</span>
-                    </div>
-                    <h4 class="text-xl font-bold mb-4">Connect Assets</h4>
-                    <p class="text-slate-600 leading-relaxed">Simply enter your firm's domain or IP ranges. No complex agent installations or code changes required.</p>
-                </div>
-
-                <div class="relative z-10 text-center">
-                    <div class="w-20 h-20 bg-indigo-600 border-4 border-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl shadow-indigo-200">
-                        <span class="text-2xl font-black text-white">02</span>
-                    </div>
-                    <h4 class="text-xl font-bold mb-4">Autonomous Audit</h4>
-                    <p class="text-slate-600 leading-relaxed">Our engine cross-references your infrastructure against 14+ global legal frameworks in real-time.</p>
-                </div>
-
-                <div class="relative z-10 text-center">
-                    <div class="w-20 h-20 bg-white border-4 border-indigo-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
-                        <span class="text-2xl font-black text-slate-900">03</span>
-                    </div>
-                    <h4 class="text-xl font-bold mb-4">Instant Certification</h4>
-                    <p class="text-slate-600 leading-relaxed">Download your verified PDF reports ready for client review, insurance renewals, or court filings.</p>
-                </div>
-            </div>
-            
-            <div class="mt-20 p-8 bg-indigo-50 rounded-[2rem] border border-indigo-100 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div class="flex items-center gap-4">
-                    <div class="flex -space-x-2">
-                        <div class="w-10 h-10 rounded-full bg-slate-300 border-2 border-white"></div>
-                        <div class="w-10 h-10 rounded-full bg-indigo-300 border-2 border-white"></div>
-                        <div class="w-10 h-10 rounded-full bg-purple-300 border-2 border-white"></div>
-                    </div>
-                    <p class="text-sm font-semibold text-slate-700">Join 500+ law firms securing their data today.</p>
-                </div>
-                <a href="{% url 'account_signup' %}" class="font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-2 group">
-                    Create your free account <span class="group-hover:translate-x-1 transition-transform">→</span>
-                </a>
-            </div>
-        </div>
-    </section>
-    <section id="features" class="py-24 bg-slate-50">
+    <section id="features" class="py-24">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Enterprise Infrastructure for Small Firms</h2>
@@ -153,7 +103,7 @@
                     <div class="absolute top-0 right-0 w-1/2 h-full bg-indigo-600/10 blur-[80px] group-hover:bg-indigo-600/20 transition-colors"></div>
                 </div>
 
-                <div class="col-span-12 md:col-span-4 bg-indigo-50 rounded-[2.5rem] p-10 flex flex-col justify-between border border-indigo-100">
+                <div class="col-span-12 md:col-span-4 bg-indigo-50 rounded-[2.5rem] p-10 flex flex-col justify-between">
                     <div>
                         <div class="w-12 h-12 bg-indigo-600 rounded-2xl mb-6 flex items-center justify-center shadow-lg shadow-indigo-200">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
