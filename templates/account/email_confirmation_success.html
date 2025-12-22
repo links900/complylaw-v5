@@ -1,22 +1,23 @@
 {% extends "account/base_account.html" %}
-{% block title %}Email Confirmed!{% endblock %}
+{% block title %}Identity Verified | ComplyLaw{% endblock %}
 
 {% block content %}
 <div class="text-center">
-  <div class="w-20 h-20 mx-auto mb-6 bg-green-100 rounded-full flex items-center justify-center">
-    <svg class="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+  <div class="w-24 h-24 mx-auto mb-8 bg-emerald-50 border border-emerald-100 rounded-3xl flex items-center justify-center shadow-inner">
+    <svg class="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
     </svg>
   </div>
 
-  <h2 class="text-3xl font-bold text-gray-900 mb-4">Email Confirmed!</h2>
-  <p class="text-lg text-gray-600 mb-10">
+  <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">Email Confirmed!</h2>
+  <p class="text-slate-500 font-medium mb-10 leading-relaxed">
     Welcome to ComplyLaw — your compliance journey starts now.
   </p>
 
   <a href="{% url 'dashboard:home' %}"
-     class="inline-block w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg py-5 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition transform hover:scale-105 shadow-xl">
-    Go to Your Dashboard
+     class="group flex items-center justify-center gap-3 w-full bg-slate-900 text-white font-black text-lg py-5 rounded-2xl hover:bg-indigo-600 transition-all shadow-xl shadow-indigo-100">
+    <span>Initialize Dashboard</span>
+    <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
   </a>
 </div>
 {% endblock %}

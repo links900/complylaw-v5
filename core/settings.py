@@ -276,7 +276,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ========================= LOGGING in debug.log FILE =========================
-
+'''
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -306,7 +306,24 @@ LOGGING = {
     },
 }
 
+'''
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django.template': {
+            'handlers': ['console'],
+            'level': 'INFO', # Change from DEBUG to INFO to hide variable lookup failures
+            'propagate': False,
+        },
+    },
+}
 # ========================= DYNAMIC SITE INFO =========================
 SITE_NAME = os.getenv("SITE_NAME", "ComplyLaw")
 SITE_DOMAIN = os.getenv(
