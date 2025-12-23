@@ -1,7 +1,5 @@
-# billing/views.py
 import stripe
 import logging
-import sys
 import secrets
 import string
 
@@ -10,201 +8,245 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.db import transaction
 
 from allauth.account.models import EmailAddress
 
-# ------------------------------------------------------------------
 # Setup
-# ------------------------------------------------------------------
 stripe.api_key = settings.STRIPE_SECRET_KEY
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+# ------------------------------------------------------------------
+# Utils
+# ------------------------------------------------------------------
 def generate_random_password(length=12):
     chars = string.ascii_letters + string.digits + "!@#$%^&*()-_=+"
     return ''.join(secrets.choice(chars) for _ in range(length))
 
+def send_welcome_email(email, password):
+    """SaaS Grade: Sends HTML credentials email."""
+    subject = f"Welcome to {settings.SITE_NAME} - Account Ready"
+    context = {
+        'email': email,
+        'password': password,
+        'login_url': f"https://{settings.SITE_DOMAIN}/accounts/login/",
+        'site_name': settings.SITE_NAME
+    }
+    
+    html_content = render_to_string('emails/welcome.html', context)
+    text_content = strip_tags(html_content)
+
+    msg = EmailMultiAlternatives(
+        subject, 
+        text_content, 
+        settings.DEFAULT_FROM_EMAIL, 
+        [email]
+    )
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
+
 # ------------------------------------------------------------------
-# Pricing Page
+# Pages (Pricing & Success)
 # ------------------------------------------------------------------
 def pricing(request):
     return render(request, "billing/pricing.html")
 
+def success(request):
+    session_id = request.GET.get('session_id')
+    customer_email = None
+    if session_id:
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            customer_email = session.customer_details.email
+        except Exception as e:
+            logger.error(f"Error retrieving session: {e}")
+            
+    return render(request, "billing/success.html", {"customer_email": customer_email})
+
 # ------------------------------------------------------------------
-# Create Checkout Session
+# Billing Dashboard
+# ------------------------------------------------------------------
+@login_required
+def billing_dashboard(request):
+    user = request.user
+    subscription_data = None
+    
+    if user.stripe_customer_id:
+        try:
+            customer = stripe.Customer.retrieve(
+                user.stripe_customer_id, 
+                expand=['subscriptions']
+            )
+            if customer.subscriptions.data:
+                sub = customer.subscriptions.data[0]
+                plan_name = "Professional" if sub.plan.id == settings.STRIPE_PRICE_PRO else "Basic"
+                subscription_data = {
+                    "status": sub.status,
+                    "plan_name": plan_name,
+                    "amount": f"${sub.plan.amount / 100:.2f}",
+                    "current_period_end": sub.current_period_end * 1000,
+                    "cancel_at_period_end": sub.cancel_at_period_end,
+                }
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe Error: {e}")
+
+    return render(request, "billing/dashboard.html", {"subscription": subscription_data})
+
+# ------------------------------------------------------------------
+# Stripe Actions
 # ------------------------------------------------------------------
 def create_checkout(request):
     if request.method != "POST":
-        return redirect("pricing")
+        return redirect("billing:pricing")
 
-    email = request.POST.get("email")
+    email = request.user.email if request.user.is_authenticated else request.POST.get("email")
     plan = request.POST.get("plan", "pro")
 
     if not email:
         return JsonResponse({"error": "Email is required"}, status=400)
 
     price_id = settings.STRIPE_PRICE_PRO if plan == "pro" else settings.STRIPE_PRICE_BASIC
-
     DOMAIN = settings.SITE_DOMAIN
-    protocol = "http" if DOMAIN.startswith("localhost") else "https"
+    # Logic to handle protocol based on your settings
+    protocol = "https" if not ("localhost" in DOMAIN or "127.0.0.1" in DOMAIN) else "http"
 
     try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            customer_email=email,
-            line_items=[{"price": price_id, "quantity": 1}],
-            mode="subscription",
-            success_url=f"{protocol}://{DOMAIN}/billing/success/?session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{protocol}://{DOMAIN}/pricing/",
+        checkout_params = {
+            "payment_method_types": ["card"],
+            "line_items": [{"price": price_id, "quantity": 1}],
+            "mode": "subscription",
+            "success_url": f"{protocol}://{DOMAIN}/billing/success/?session_id={{CHECKOUT_SESSION_ID}}",
+            "cancel_url": f"{protocol}://{DOMAIN}/billing/pricing/",
+        }
+
+        if request.user.is_authenticated and request.user.stripe_customer_id:
+            checkout_params["customer"] = request.user.stripe_customer_id
+        else:
+            checkout_params["customer_email"] = email
+
+        session = stripe.checkout.Session.create(**checkout_params)
+        return redirect(session.url, code=303)
+    except Exception as e:
+        logger.exception("Checkout creation failed")
+        return HttpResponse("Payment server error", status=500)
+
+@login_required
+def create_portal_session(request):
+    if not request.user.stripe_customer_id:
+        return redirect("billing:pricing")
+
+    DOMAIN = settings.SITE_DOMAIN
+    protocol = "https" if not ("localhost" in DOMAIN or "127.0.0.1" in DOMAIN) else "http"
+    
+    try:
+        session = stripe.billing_portal.Session.create(
+            customer=request.user.stripe_customer_id,
+            return_url=f"{protocol}://{DOMAIN}/billing/dashboard/",
         )
         return redirect(session.url, code=303)
     except Exception as e:
-        logger.exception("Stripe checkout error")
-        return JsonResponse({"error": str(e)}, status=400)
+        logger.error(f"Portal Error: {e}")
+        return redirect("billing:dashboard")
 
 # ------------------------------------------------------------------
-# Stripe Webhook (SOURCE OF TRUTH)
+# Webhooks
 # ------------------------------------------------------------------
 @csrf_exempt
 def stripe_webhook(request):
-    print("DEBUG: Webhook received!", file=sys.stderr)
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except (ValueError, stripe.error.SignatureVerificationError) as e:
-        logger.error(f"Webhook signature/payload error: {e}")
+        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+    except Exception as e:
         return HttpResponse(status=400)
 
     if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        email = session.get("customer_email")
-        customer_id = session.get("customer")
-        subscription_id = session.get("subscription")
-
-        if not email or not subscription_id:
-            logger.error("Missing email or subscription ID in Stripe session")
-            return HttpResponse(status=400)
-
-        # Idempotency Checks
-        if User.objects.filter(stripe_subscription_id=subscription_id).exists():
-            return HttpResponse(status=200)
-
-        if User.objects.filter(email=email).exists():
-            return HttpResponse(status=200)
-
-        try:
-            with transaction.atomic():
-                password = generate_random_password()
-                username = email.split("@")[0]
-
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    password=password,
-                )
-                user.stripe_customer_id = customer_id
-                user.stripe_subscription_id = subscription_id
-                user.save()
-
-                EmailAddress.objects.create(
-                    user=user, email=email, verified=True, primary=True
-                )
-
-                def send_welcome_email():
-                    print(f"DEBUG: Transaction committed. Sending email to {email}...", file=sys.stderr)
-                    
-                    # Professional Email Body
-                    subject = "Welcome to ComplyLaw – Your Account is Ready"
-                    message = f"""
-                Dear User,
-
-                Thank you for choosing ComplyLaw! Your subscription is now active, and your account has been successfully created.
-
-                Below are your temporary login credentials:
-
-                --------------------------------------------------
-                
-                Login Email: {email}
-                Temporary Password: {password}
-                
-                Login URL: https://{settings.SITE_DOMAIN}/accounts/login/
-                
-                --------------------------------------------------
-
-                For security reasons, we recommend that you change your password immediately after your first login via the Account Settings page.
-
-                If you have any questions or need assistance getting started, simply reply to this email.
-
-                Best regards,
-                The ComplyLaw Team
-                
-                    """
-
-                    try:
-                        send_mail(
-                            subject=subject,
-                            message=message,
-                            from_email=settings.DEFAULT_FROM_EMAIL,
-                            recipient_list=[email],
-                            fail_silently=False,
-                        )
-                        print(f"DEBUG: Professional email accepted by SendGrid for {email}", file=sys.stderr)
-                    except Exception as e:
-                        logger.error(f"Post-commit email failure: {e}")
-
-                transaction.on_commit(send_welcome_email)
-
-        except Exception:
-            logger.exception("Failed to process user creation")
-            return HttpResponse(status=500)
+        handle_checkout_success(event["data"]["object"])
+    elif event["type"] in ["customer.subscription.deleted", "customer.subscription.updated"]:
+        handle_subscription_change(event["data"]["object"])
 
     return HttpResponse(status=200)
 
-# ------------------------------------------------------------------
-# Success Page
-# ------------------------------------------------------------------
-def success(request):
-    if request.user.is_authenticated:
-        return render(request, 'dashboard/home.html')
-    return render(request, "billing/success.html")
-    
-    
-    
-# billing/views.py
+def handle_checkout_success(session):
+    email = session.get("customer_details", {}).get("email") or session.get("customer_email")
+    customer_id = session.get("customer")
+    subscription_id = session.get("subscription")
 
-def test_email_diagnostic(request):
-    from django.core.mail import get_connection, send_mail
-    from django.conf import settings
-    import os
+    user = User.objects.filter(email=email).first()
 
-    results = []
+    if not user:
+        with transaction.atomic():
+            password = generate_random_password()
+            user = User.objects.create_user(
+                username=email.split("@")[0] + "_" + secrets.token_hex(3),
+                email=email,
+                password=password
+            )
+            user.stripe_customer_id = customer_id
+            user.stripe_subscription_id = subscription_id
+            user.save()
+            
+            EmailAddress.objects.create(user=user, email=email, verified=True, primary=True)
+            transaction.on_commit(lambda: send_welcome_email(email, password))
+    else:
+        user.stripe_customer_id = customer_id
+        user.stripe_subscription_id = subscription_id
+        user.save()
+
+def handle_subscription_change(subscription):
+    user = User.objects.filter(stripe_customer_id=subscription.customer).first()
+    if user:
+        if subscription.status in ['canceled', 'unpaid']:
+            user.stripe_subscription_id = None
+        else:
+            user.stripe_subscription_id = subscription.id
+        user.save()
+        
+        
+@login_required
+def billing_dashboard(request):
+    """SaaS Standard: Fetch live subscription status from Stripe."""
+    user = request.user
+    subscription_data = None
     
-    # Check Environment
-    results.append(f"RENDER Env Var: {os.getenv('RENDER')}")
-    results.append(f"From Email: {settings.DEFAULT_FROM_EMAIL}")
-    
-    # Check Backend
-    conn = get_connection()
-    backend_name = f"{conn.__class__.__module__}.{conn.__class__.__name__}"
-    results.append(f"Active Backend: {backend_name}")
+    if user.stripe_customer_id:
+        try:
+            # Expand subscriptions so we get the full object
+            customer = stripe.Customer.retrieve(
+                user.stripe_customer_id, 
+                expand=['subscriptions']
+            )
+            
+            if customer.subscriptions.data:
+                # Get the first active subscription
+                sub = customer.subscriptions.data[0]
+                
+                # Logic to determine plan name
+                plan_id = getattr(sub.plan, 'id', None)
+                plan_name = "Professional" if plan_id == settings.STRIPE_PRICE_PRO else "Basic"
+                
+                # SAFER ACCESS: Use getattr or .get() to avoid AttributeError
+                # Stripe timestamps are in seconds, JS/Django templates often prefer milliseconds
+                period_end = getattr(sub, 'current_period_end', None)
+                cancel_at_end = getattr(sub, 'cancel_at_period_end', False)
+                
+                subscription_data = {
+                    "status": sub.status,
+                    "plan_name": plan_name,
+                    "amount": f"${sub.plan.amount / 100:.2f}",
+                    "current_period_end": period_end * 1000 if period_end else None,
+                    "cancel_at_period_end": cancel_at_end,
+                }
+        except stripe.error.StripeError as e:
+            logger.error(f"Stripe Error: {e}")
+        except Exception as e:
+            logger.error(f"General Billing Error: {e}")
 
-    # Try Sending
-    try:
-        send_mail(
-            "Diagnostic Test",
-            "Checking SendGrid connectivity from Render Free Tier.",
-            settings.DEFAULT_FROM_EMAIL,
-            ["complylawtestuser29@yopmail.com"],
-            fail_silently=False
-        )
-        results.append("✅ SUCCESS: SendGrid accepted the email request.")
-    except Exception as e:
-        results.append(f"❌ ERROR: {type(e).__name__} - {str(e)}")
-
-    return HttpResponse("<br>".join(results))
+    return render(request, "billing/dashboard.html", {"subscription": subscription_data})

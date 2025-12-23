@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-[#F8F9FB] py-16 px-6">
+    <div class="max-w-5xl mx-auto">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4">
+            <div>
+                <h1 class="text-4xl font-[800] tracking-tight text-slate-900">Billing & Subscription</h1>
+                <p class="text-slate-500 font-medium">Manage your plan and download tax invoices.</p>
+            </div>
+            <a href="{% url 'billing:pricing' %}" class="inline-flex items-center px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">
+                Change Plan
+            </a>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Active Plan</p>
+                            <h2 class="text-3xl font-extrabold text-slate-900">Professional</h2>
+                        </div>
+                        <span class="px-4 py-1 bg-emerald-100 text-emerald-700 text-xs font-black rounded-full uppercase tracking-widest">
+                            Active
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-8 border-y border-slate-50">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 mb-1">Price</p>
+                            <p class="text-lg font-bold text-slate-900">$499/mo</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 mb-1">Next Invoice</p>
+                            <p class="text-lg font-bold text-slate-900">Jan 23, 2026</p>
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <p class="text-xs font-bold text-slate-400 mb-1">Payment Method</p>
+                            <p class="text-lg font-bold text-slate-900">•••• 4242</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex gap-4">
+                        <form action="{% url 'billing:create_portal' %}" method="POST" class="flex-1">
+                            {% csrf_token %}
+                            <button class="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-all">
+                                Update Payment Method
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-indigo-600 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-100">
+                    <h3 class="text-lg font-bold mb-4">Plan Benefits</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center text-sm font-semibold opacity-90">
+                            <svg class="w-5 h-5 mr-3 text-indigo-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                            Unlimited Daily Scans
+                        </li>
+                        <li class="flex items-center text-sm font-semibold opacity-90">
+                            <svg class="w-5 h-5 mr-3 text-indigo-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                            Priority Audit Support
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

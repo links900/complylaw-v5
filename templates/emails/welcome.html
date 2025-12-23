@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .button { background-color: #4F46E5; color: white; padding: 14px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; }
+    </style>
+</head>
+<body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; line-height: 1.5;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #e2e8f0; border-radius: 24px;">
+        <h1 style="font-size: 24px; font-weight: 800; letter-spacing: -0.025em; color: #0f172a;">Welcome to {{ site_name }}</h1>
+        <p>Your subscription is active. We've created a secure account for your compliance management.</p>
+        
+        <div style="background-color: #f8fafc; padding: 24px; border-radius: 16px; margin: 24px 0;">
+            <p style="margin: 0; font-size: 14px; color: #64748b;">Login Credentials:</p>
+            <p style="margin: 8px 0; font-weight: 700;">Email: {{ email }}</p>
+            <p style="margin: 0; font-weight: 700;">Temp Password: <span style="color: #4F46E5;">{{ password }}</span></p>
+        </div>
+
+        <a href="{{ login_url }}" class="button">Log in to Dashboard</a>
+        
+        <p style="margin-top: 32px; font-size: 12px; color: #94a3b8;">
+            For security, please change your password immediately after logging in.
+        </p>
+    </div>
+</body>
+</html>

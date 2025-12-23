@@ -1,44 +1,147 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Pricing - ComplyLaw</title>
-  <style>
-    body { font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #f8f9fa; }
-    .card { max-width: 420px; margin: 40px auto; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-    .popular { background: #000; color: white; padding: 8px 16px; border-radius: 99px; font-size: 12px; }
-    h2 { font-size: 42px; margin: 20px 0 10px; }
-    h3 { font-size: 48px; margin: 0; }
-    h3 span { font-size: 20px; color: #666; }
-    ul { text-align: left; margin: 30px 0; }
-    li { margin: 12px 0; font-size: 18px; }
-    input[type="email"] { width: 100%; padding: 16px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
-    button { width: 100%; padding: 18px; background: #000; color: white; border: none; border-radius: 8px; font-size: 20px; cursor: pointer; }
-    button:hover { background: #333; }
-    small { color: #666; margin-top: 20px; display: block; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="popular">MOST POPULAR</div>
-    <h2>Professional</h2>
-    <h3>$499<span>/month</span></h3>
-    <ul>
-		<li>Daily Scans</li>
-			<li>GDPR + ISO 27001 + OWASP + PCI DSS + CCPA + SOC 2</li>
-          
-            <li>Beautiful branded PDF reports</li>
-			<li>Recurring Tasks</li>
-		    <li>Priority Support</li>
-			
-    </ul>
-    <form action="/billing/create-checkout/" method="POST">
-      {% csrf_token %}
-      <input type="hidden" name="plan" value="pro">
-      <input type="email" name="email" placeholder="you@company.com" required>
-      <button type="submit">Start 14-Day Free Trial →</button>
-    </form>
-    <small>No credit card required • Cancel anytime</small>
-  </div>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+    .pricing-body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #fcfcfd; }
+    .premium-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    .premium-card:hover { transform: translateY(-8px); }
+    .feature-list-icon { flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pricing-body min-h-screen text-slate-900">
+
+    <header class="max-w-4xl mx-auto text-center pt-20 pb-16 px-6">
+        <span class="inline-block px-4 py-1.5 mb-6 text-[10px] font-black tracking-[0.2em] text-indigo-700 uppercase bg-indigo-50 rounded-full border border-indigo-100">
+            Global Compliance Standards
+        </span>
+        <h1 class="text-5xl md:text-7xl font-[800] tracking-tight mb-6 leading-tight text-slate-900">
+            Secure your firm.<br><span class="text-indigo-600">Automate compliance.</span>
+        </h1>
+        <p class="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
+            Join 500+ legal departments using ComplyLaw to handle GDPR, ISO 27001, and SOC 2 audits automatically.
+        </p>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-3 gap-8 pb-32">
+        
+        <div class="premium-card bg-white p-10 rounded-[40px] border border-slate-100 flex flex-col justify-between shadow-sm hover:shadow-2xl">
+            <div>
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 text-left">Starter</h3>
+                <div class="flex items-baseline mb-4">
+                    <span class="text-5xl font-extrabold tracking-tight">$199</span>
+                    <span class="text-slate-400 ml-2 font-semibold">/mo</span>
+                </div>
+                <p class="text-slate-500 mb-8 font-medium text-left">Core essentials for boutique firms.</p>
+                <div class="h-px bg-slate-100 w-full mb-8"></div>
+                
+                <ul class="space-y-5 mb-10 text-left">
+                    <li class="flex items-start text-sm font-bold text-slate-700">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Weekly Automated Scans
+                    </li>
+                    <li class="flex items-start text-sm font-bold text-slate-700">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        GDPR & CCPA Modules
+                    </li>
+                    <li class="flex items-start text-sm font-bold text-slate-300">
+                        <svg class="feature-list-icon w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                        ISO 27001 Support
+                    </li>
+                </ul>
+            </div>
+            
+            <form action="/billing/create-checkout/" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="plan" value="basic">
+                {% if not user.is_authenticated %}
+                <input type="email" name="email" placeholder="work@firm.com" class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl mb-4 focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium" required>
+                {% endif %}
+                <button type="submit" class="w-full py-5 bg-white border-2 border-slate-900 text-slate-900 font-black rounded-2xl hover:bg-slate-900 hover:text-white transition-all">
+                    Start Starter Plan
+                </button>
+            </form>
+        </div>
+
+        <div class="premium-card bg-slate-900 p-10 rounded-[40px] flex flex-col justify-between shadow-2xl relative overflow-hidden transform lg:scale-105 z-10 text-white border-4 border-indigo-500/30">
+            <div class="absolute top-6 right-8 bg-indigo-600 text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">Most Popular</div>
+            <div>
+                <h3 class="text-sm font-bold text-indigo-400 uppercase tracking-widest mb-4 text-left">Professional</h3>
+                <div class="flex items-baseline mb-4">
+                    <span class="text-6xl font-extrabold tracking-tighter">$499</span>
+                    <span class="text-slate-400 ml-2 font-semibold">/mo</span>
+                </div>
+                <p class="text-slate-400 mb-8 font-medium text-left">The industry standard for legal-tech compliance.</p>
+                <div class="h-px bg-white/10 w-full mb-8"></div>
+                
+                <ul class="space-y-5 mb-10 text-left">
+                    <li class="flex items-start text-sm font-bold">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Daily Deep Security Scans
+                    </li>
+                    <li class="flex items-start text-sm font-bold">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        GDPR + ISO 27001 + SOC 2
+                    </li>
+                    <li class="flex items-start text-sm font-bold">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Branded Executive PDF Reports
+                    </li>
+                    <li class="flex items-start text-sm font-bold">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Priority 24/7 Global Support
+                    </li>
+                </ul>
+            </div>
+            
+            <form action="/billing/create-checkout/" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="plan" value="pro">
+                {% if not user.is_authenticated %}
+                <input type="email" name="email" placeholder="you@company.com" class="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl mb-4 text-white focus:ring-2 focus:ring-indigo-500 outline-none transition font-medium" required>
+                {% endif %}
+                <button type="submit" class="w-full py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20">
+                    Start 14-Day Free Trial →
+                </button>
+            </form>
+        </div>
+
+        <div class="premium-card bg-white p-10 rounded-[40px] border border-slate-100 flex flex-col justify-between shadow-sm hover:shadow-2xl">
+            <div>
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 text-left">Enterprise</h3>
+                <div class="flex items-baseline mb-4 text-5xl font-extrabold tracking-tight">Custom</div>
+                <p class="text-slate-500 mt-4 mb-8 font-medium text-left">For firms with multi-jurisdiction data requirements.</p>
+                <div class="h-px bg-slate-100 w-full mb-8"></div>
+                
+                <ul class="space-y-5 mb-10 text-left">
+                    <li class="flex items-start text-sm font-bold text-slate-700">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Dedicated Compliance Officer
+                    </li>
+                    <li class="flex items-start text-sm font-bold text-slate-700">
+                        <svg class="feature-list-icon w-5 h-5 text-indigo-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Custom SLA & On-prem Support
+                    </li>
+                </ul>
+            </div>
+            <div class="mt-auto">
+                <a href="mailto:sales@complylaw.com" class="block w-full text-center py-5 bg-slate-100 text-slate-900 font-black rounded-2xl hover:bg-slate-200 transition-all">
+                    Contact Sales
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <section class="max-w-7xl mx-auto px-6 py-20 border-t border-slate-100">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-12 grayscale opacity-40">
+            <span class="text-2xl font-black tracking-tighter">GDPR COMPLIANT</span>
+            <span class="text-2xl font-black tracking-tighter">ISO 27001</span>
+            <span class="text-2xl font-black tracking-tighter">SOC 2 TYPE II</span>
+            <span class="text-2xl font-black tracking-tighter">PCI DSS</span>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
