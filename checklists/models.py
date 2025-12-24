@@ -102,6 +102,14 @@ class ChecklistSubmission(models.Model):
         return stats
         
         
+        
+    @property
+    def completion_stats(self):
+        total = self.responses.count()
+        completed = self.responses.exclude(status='pending').count()
+        percent = int((completed / total) * 100) if total > 0 else 0
+        return {'total': total, 'completed': completed, 'percent': percent}
+        
 
 class ChecklistResponse(models.Model):
     # This must point to the ComplianceReport model in the reports app
