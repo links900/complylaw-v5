@@ -1,8 +1,8 @@
-# billing/views.py
 import stripe
 import logging
 import secrets
 import string
+import datetime
 from django.urls import reverse
 from django.conf import settings
 from django.shortcuts import render, redirect
@@ -13,9 +13,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.utils import timezone
 from django.db import transaction
 
 from allauth.account.models import EmailAddress
+from .models import ChurnFeedback
 
 # Setup
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -38,16 +40,36 @@ def send_welcome_email(email, password):
         'login_url': f"https://{settings.SITE_DOMAIN}/accounts/login/",
         'site_name': settings.SITE_NAME
     }
-    
     html_content = render_to_string('emails/welcome.html', context)
     text_content = strip_tags(html_content)
+    msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [email])
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()
 
-    msg = EmailMultiAlternatives(
-        subject, 
-        text_content, 
-        settings.DEFAULT_FROM_EMAIL, 
-        [email]
-    )
+def send_retention_offer(user, reason):
+    """SaaS Logic: Sends targeted email based on churn reason."""
+    subject = "Quick question about your experience"
+    
+    if "expensive" in reason.lower():
+        message = "We'd love to keep you. Use code SAVE50 for 50% off your next 3 months."
+        template = 'emails/retention_discount.html'
+    elif "features" in reason.lower():
+        message = "We're actually launching new features next month! Would you like early access?"
+        template = 'emails/retention_general.html'
+    else:
+        message = "Thanks for your feedback. We'd love to chat about how we can improve."
+        template = 'emails/retention_general.html'
+
+    context = {
+        'user': user,
+        'custom_message': message,
+        'site_name': settings.SITE_NAME,
+        'site_domain': settings.SITE_DOMAIN
+    }
+    
+    html_content = render_to_string(template, context)
+    text_content = strip_tags(html_content)
+    msg = EmailMultiAlternatives(subject, text_content, settings.DEFAULT_FROM_EMAIL, [user.email])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
 
@@ -66,7 +88,6 @@ def success(request):
             customer_email = session.customer_details.email
         except Exception as e:
             logger.error(f"Error retrieving session: {e}")
-            
     return render(request, "billing/success.html", {"customer_email": customer_email})
 
 # ------------------------------------------------------------------
@@ -74,29 +95,48 @@ def success(request):
 # ------------------------------------------------------------------
 @login_required
 def billing_dashboard(request):
+    """SaaS Standard: Fetch live subscription status and billing history."""
     user = request.user
     subscription_data = None
+    invoices = []
     
     if user.stripe_customer_id:
         try:
+            # 1. Fetch Subscription Info
             customer = stripe.Customer.retrieve(
                 user.stripe_customer_id, 
                 expand=['subscriptions']
             )
+            
             if customer.subscriptions.data:
                 sub = customer.subscriptions.data[0]
-                plan_name = "Professional" if sub.plan.id == settings.STRIPE_PRICE_PRO else "Basic"
+                plan_id = getattr(sub.plan, 'id', None)
+                plan_name = "Professional" if plan_id == settings.STRIPE_PRICE_PRO else "Basic"
+                
+                period_end = getattr(sub, 'current_period_end', None)
+                cancel_at_end = getattr(sub, 'cancel_at_period_end', False)
+                
                 subscription_data = {
                     "status": sub.status,
                     "plan_name": plan_name,
                     "amount": f"${sub.plan.amount / 100:.2f}",
-                    "current_period_end": sub.current_period_end * 1000,
-                    "cancel_at_period_end": sub.cancel_at_period_end,
+                    "current_period_end": period_end * 1000 if period_end else None,
+                    "cancel_at_period_end": cancel_at_end,
                 }
+
+            # 2. Fetch Billing History
+            stripe_invoices = stripe.Invoice.list(customer=user.stripe_customer_id, limit=12)
+            invoices = stripe_invoices.data
+
         except stripe.error.StripeError as e:
             logger.error(f"Stripe Error: {e}")
+        except Exception as e:
+            logger.error(f"General Billing Error: {e}")
 
-    return render(request, "billing/dashboard.html", {"subscription": subscription_data})
+    return render(request, "billing/dashboard.html", {
+        "subscription": subscription_data,
+        "invoices": invoices
+    })
 
 # ------------------------------------------------------------------
 # Stripe Actions
@@ -113,7 +153,6 @@ def create_checkout(request):
 
     price_id = settings.STRIPE_PRICE_PRO if plan == "pro" else settings.STRIPE_PRICE_BASIC
     DOMAIN = settings.SITE_DOMAIN
-    # Logic to handle protocol based on your settings
     protocol = "https" if not ("localhost" in DOMAIN or "127.0.0.1" in DOMAIN) else "http"
 
     try:
@@ -138,17 +177,23 @@ def create_checkout(request):
 
 @login_required
 def create_portal_session(request):
+    """Handles both Stripe Portal access and Churn Survey logging."""
     if not request.user.stripe_customer_id:
         return redirect("billing:pricing")
 
-    # Dynamically build the return URL based on your URL names
-    # This will resolve to "/billing/" based on your current URLconf
+    # LOG CHURN REASON TO DB
+    churn_reason = request.POST.get('churn_reason')
+    if churn_reason:
+        ChurnFeedback.objects.create(
+            user=request.user,
+            email=request.user.email,
+            reason=churn_reason
+        )
+        logger.info(f"Churn feedback saved for {request.user.email}")
+
     relative_return_url = reverse("billing:dashboard")
-    
     DOMAIN = settings.SITE_DOMAIN
     protocol = "https" if not ("localhost" in DOMAIN or "127.0.0.1" in DOMAIN) else "http"
-    
-    # Construct the full absolute URL
     return_url = f"{protocol}://{DOMAIN}{relative_return_url}"
     
     try:
@@ -159,8 +204,8 @@ def create_portal_session(request):
         return redirect(session.url, code=303)
     except Exception as e:
         logger.error(f"Portal Error: {e}")
-        # Using name-based redirect here too for safety
         return redirect("billing:dashboard")
+
 # ------------------------------------------------------------------
 # Webhooks
 # ------------------------------------------------------------------
@@ -211,50 +256,16 @@ def handle_checkout_success(session):
 def handle_subscription_change(subscription):
     user = User.objects.filter(stripe_customer_id=subscription.customer).first()
     if user:
+        # Check for Churn Feedback to send retention email
+        if subscription.cancel_at_period_end or subscription.status in ['canceled', 'unpaid']:
+            one_hour_ago = timezone.now() - datetime.timedelta(hours=1)
+            feedback = ChurnFeedback.objects.filter(user=user, created_at__gte=one_hour_ago).last()
+            if feedback:
+                send_retention_offer(user, feedback.reason)
+
+        # Update User Model Status
         if subscription.status in ['canceled', 'unpaid']:
             user.stripe_subscription_id = None
         else:
             user.stripe_subscription_id = subscription.id
         user.save()
-        
-        
-@login_required
-def billing_dashboard(request):
-    """SaaS Standard: Fetch live subscription status from Stripe."""
-    user = request.user
-    subscription_data = None
-    
-    if user.stripe_customer_id:
-        try:
-            # Expand subscriptions so we get the full object
-            customer = stripe.Customer.retrieve(
-                user.stripe_customer_id, 
-                expand=['subscriptions']
-            )
-            
-            if customer.subscriptions.data:
-                # Get the first active subscription
-                sub = customer.subscriptions.data[0]
-                
-                # Logic to determine plan name
-                plan_id = getattr(sub.plan, 'id', None)
-                plan_name = "Professional" if plan_id == settings.STRIPE_PRICE_PRO else "Basic"
-                
-                # SAFER ACCESS: Use getattr or .get() to avoid AttributeError
-                # Stripe timestamps are in seconds, JS/Django templates often prefer milliseconds
-                period_end = getattr(sub, 'current_period_end', None)
-                cancel_at_end = getattr(sub, 'cancel_at_period_end', False)
-                
-                subscription_data = {
-                    "status": sub.status,
-                    "plan_name": plan_name,
-                    "amount": f"${sub.plan.amount / 100:.2f}",
-                    "current_period_end": period_end * 1000 if period_end else None,
-                    "cancel_at_period_end": cancel_at_end,
-                }
-        except stripe.error.StripeError as e:
-            logger.error(f"Stripe Error: {e}")
-        except Exception as e:
-            logger.error(f"General Billing Error: {e}")
-
-    return render(request, "billing/dashboard.html", {"subscription": subscription_data})

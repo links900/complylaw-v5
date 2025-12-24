@@ -6,69 +6,248 @@
         
         <div class="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-4">
             <div>
-                <h1 class="text-4xl font-[800] tracking-tight text-slate-900">Billing & Subscription</h1>
-                <p class="text-slate-500 font-medium">Manage your plan and download tax invoices.</p>
+                <h1 class="text-4xl font-[900] tracking-tight text-slate-900">Billing & Subscription</h1>
+                <p class="text-slate-500 font-medium">Manage your plan, payment methods, and download tax invoices.</p>
             </div>
-            <a href="{% url 'billing:pricing' %}" class="inline-flex items-center px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition">
+            <a href="{% url 'billing:pricing' %}" class="inline-flex items-center px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm">
                 Change Plan
             </a>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
+                
                 <div class="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
                     <div class="flex justify-between items-start mb-8">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600 mb-2">Active Plan</p>
-                            <h2 class="text-3xl font-extrabold text-slate-900">Professional</h2>
+                            <h2 class="text-3xl font-extrabold text-slate-900">
+                                {% if subscription %}{{ subscription.plan_name }}{% else %}No Active Plan{% endif %}
+                            </h2>
                         </div>
-                        <span class="px-4 py-1 bg-emerald-100 text-emerald-700 text-xs font-black rounded-full uppercase tracking-widest">
-                            Active
+                        <span class="px-4 py-1 {% if subscription.status == 'active' %}bg-emerald-100 text-emerald-700{% else %}bg-amber-100 text-amber-700{% endif %} text-xs font-black rounded-full uppercase tracking-widest">
+                            {% if subscription %}{{ subscription.status|upper }}{% else %}INACTIVE{% endif %}
                         </span>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-8 py-8 border-y border-slate-50">
                         <div>
-                            <p class="text-xs font-bold text-slate-400 mb-1">Price</p>
-                            <p class="text-lg font-bold text-slate-900">$499/mo</p>
+                            <p class="text-xs font-bold text-slate-400 mb-1">Monthly Price</p>
+                            <p class="text-lg font-bold text-slate-900">
+                                {% if subscription %}{{ subscription.amount }}{% else %}$0.00{% endif %}/mo
+                            </p>
                         </div>
                         <div>
-                            <p class="text-xs font-bold text-slate-400 mb-1">Next Invoice</p>
-                            <p class="text-lg font-bold text-slate-900">Jan 23, 2026</p>
+                            <p class="text-xs font-bold text-slate-400 mb-1">
+                                {% if subscription.cancel_at_period_end %}Access Ends{% else %}Next Invoice{% endif %}
+                            </p>
+                            <p class="text-lg font-bold text-slate-900">
+                                {% if subscription.current_period_end %}
+                                    {{ subscription.current_period_end|divisibleby:1000|date:"M d, Y" }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
                         </div>
                         <div class="col-span-2 md:col-span-1">
-                            <p class="text-xs font-bold text-slate-400 mb-1">Payment Method</p>
-                            <p class="text-lg font-bold text-slate-900">•••• 4242</p>
+                            <p class="text-xs font-bold text-slate-400 mb-1">Renewal</p>
+                            <p class="text-lg font-bold text-slate-900">
+                                {% if subscription.cancel_at_period_end %}Manual (Ends Soon){% else %}Automatic{% endif %}
+                            </p>
                         </div>
                     </div>
 
-                    <div class="mt-8 flex gap-4">
-                        <form action="{% url 'billing:create_portal' %}" method="POST" class="flex-1">
-                            {% csrf_token %}
-                            <button class="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-all">
-                                Update Payment Method
+                    <div class="mt-8 flex flex-col md:flex-row gap-4">
+                        {% if user.stripe_customer_id %}
+                            <form action="{% url 'billing:create_portal' %}" method="POST" class="flex-[2]">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-lg shadow-slate-200">
+                                    Update Payment & Plan
+                                </button>
+                            </form>
+
+                            {% if subscription and not subscription.cancel_at_period_end %}
+                            <button onclick="toggleCancelModal()" class="flex-1 py-4 text-red-600 bg-red-50 font-black rounded-2xl hover:bg-red-100 transition-all text-sm">
+                                Cancel Plan
                             </button>
-                        </form>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'billing:pricing' %}" class="w-full py-4 bg-indigo-600 text-center text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+                                Upgrade to Premium
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="px-8 pt-8 pb-4">
+                        <h3 class="text-xl font-bold text-slate-900">Billing History</h3>
+                        <p class="text-sm text-slate-500 font-medium">Download your PDF receipts for tax purposes.</p>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-50">
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Date</th>
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Amount</th>
+                                    <th class="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                                    <th class="px-8 py-4 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Invoice</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-50">
+                                {% for invoice in invoices %}
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-8 py-5 text-sm font-bold text-slate-700">
+                                        {{ invoice.created|date:"M d, Y" }}
+                                    </td>
+                                    <td class="px-8 py-5 text-sm font-bold text-slate-900">
+                                        {{ invoice.currency|upper }} ${{ invoice.total|divisibleby:100|floatformat:2 }}
+                                    </td>
+                                    <td class="px-8 py-5">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                            {% if invoice.status == 'paid' %}bg-emerald-100 text-emerald-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                                            {{ invoice.status }}
+                                        </span>
+                                    </td>
+                                    <td class="px-8 py-5 text-right">
+                                        <div class="flex items-center justify-end gap-4">
+                                            {% if invoice.hosted_invoice_url %}
+                                            <a href="{{ invoice.hosted_invoice_url }}" target="_blank" class="text-slate-500 hover:text-slate-900 text-xs font-bold transition-colors">
+                                                Receipt
+                                            </a>
+                                            {% endif %}
+                                            
+                                            {% if invoice.invoice_pdf %}
+                                            <a href="{{ invoice.invoice_pdf }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-black transition-all gap-1.5">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                                </svg>
+                                                PDF
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="px-8 py-12 text-center text-slate-400 text-sm font-medium italic">
+                                        No billing history found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-6">
-                <div class="bg-indigo-600 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-100">
-                    <h3 class="text-lg font-bold mb-4">Plan Benefits</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-center text-sm font-semibold opacity-90">
-                            <svg class="w-5 h-5 mr-3 text-indigo-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                <div class="bg-indigo-600 rounded-[32px] p-8 text-white shadow-xl shadow-indigo-100 relative overflow-hidden">
+                    <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-500 rounded-full opacity-50"></div>
+                    
+                    <h3 class="text-lg font-black mb-4 relative z-10">Plan Benefits</h3>
+                    <ul class="space-y-4 relative z-10">
+                        <li class="flex items-start text-sm font-bold opacity-90">
+                            <svg class="w-5 h-5 mr-3 text-indigo-300 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
                             Unlimited Daily Scans
                         </li>
-                        <li class="flex items-center text-sm font-semibold opacity-90">
-                            <svg class="w-5 h-5 mr-3 text-indigo-300" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                        <li class="flex items-start text-sm font-bold opacity-90">
+                            <svg class="w-5 h-5 mr-3 text-indigo-300 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
                             Priority Audit Support
                         </li>
+                        <li class="flex items-start text-sm font-bold opacity-90">
+                            <svg class="w-5 h-5 mr-3 text-indigo-300 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+                            Early Access to Beta Features
+                        </li>
                     </ul>
+                </div>
+
+                <div class="bg-white rounded-[32px] p-8 border border-slate-100 shadow-sm">
+                    <h3 class="text-sm font-black text-slate-900 mb-2">Need help?</h3>
+                    <p class="text-xs text-slate-500 font-medium mb-4 leading-relaxed">Have questions about your billing or need a custom invoice? Our team is here.</p>
+                    <a href="mailto:support@yoursite.com" class="text-indigo-600 text-xs font-black hover:underline underline-offset-4">Contact Support</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<div id="cancelModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" onclick="toggleCancelModal()"></div>
+
+        <div class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white rounded-[32px] shadow-2xl sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="px-8 pt-8 pb-6 bg-white">
+                <h3 class="text-2xl font-[900] text-slate-900 mb-2 tracking-tight">We're sorry to see you go.</h3>
+                <p class="text-slate-500 font-medium mb-8 leading-relaxed">Could you tell us why you're cancelling? We'll use your feedback to improve the product.</p>
+                
+                <div class="grid grid-cols-1 gap-3 mb-6">
+                    <button type="button" onclick="selectReason(this)" class="reason-btn px-5 py-4 text-left text-sm font-bold border border-slate-200 rounded-2xl hover:border-indigo-600 hover:bg-slate-50 transition-all text-slate-700">Too expensive</button>
+                    <button type="button" onclick="selectReason(this)" class="reason-btn px-5 py-4 text-left text-sm font-bold border border-slate-200 rounded-2xl hover:border-indigo-600 hover:bg-slate-50 transition-all text-slate-700">Switching to a competitor</button>
+                    <button type="button" onclick="selectReason(this)" class="reason-btn px-5 py-4 text-left text-sm font-bold border border-slate-200 rounded-2xl hover:border-indigo-600 hover:bg-slate-50 transition-all text-slate-700">Missing specific features</button>
+                    <button type="button" onclick="selectReason(this)" class="reason-btn px-5 py-4 text-left text-sm font-bold border border-slate-200 rounded-2xl hover:border-indigo-600 hover:bg-slate-50 transition-all text-slate-700">Technical issues / Too complex</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3 px-8 pb-8">
+                <form id="cancelForm" action="{% url 'billing:create_portal' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="churn_reason" id="churnReasonInput">
+                    <button type="submit" class="w-full py-4 text-sm font-black text-white bg-red-600 rounded-2xl hover:bg-red-700 transition-all shadow-lg shadow-red-100">
+                        Confirm & Go to Cancellation Page
+                    </button>
+                </form>
+                <button onclick="toggleCancelModal()" class="w-full py-4 text-sm font-black text-slate-600 bg-slate-100 rounded-2xl hover:bg-slate-200 transition-all">
+                    Nevermind, Keep My Plan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .reason-btn.selected {
+        border-color: #4f46e5;
+        background-color: #f5f3ff;
+        color: #4f46e5;
+        box-shadow: 0 0 0 1px #4f46e5;
+    }
+</style>
+
+<script>
+    /**
+     * Toggles the Cancellation Modal
+     */
+    function toggleCancelModal() {
+        const modal = document.getElementById('cancelModal');
+        modal.classList.toggle('hidden');
+    }
+
+    /**
+     * Handles Churn Reason Selection
+     * @param {HTMLElement} btn - The clicked button element
+     */
+    function selectReason(btn) {
+        // Remove selection from all buttons
+        document.querySelectorAll('.reason-btn').forEach(b => {
+            b.classList.remove('selected');
+        });
+        
+        // Add selection to clicked button
+        btn.classList.add('selected');
+        
+        // Store selected text in hidden input for Django view
+        document.getElementById('churnReasonInput').value = btn.innerText;
+    }
+
+    // Optional: Prevent form submission if no reason is selected
+    document.getElementById('cancelForm').onsubmit = function(e) {
+        if (!document.getElementById('churnReasonInput').value) {
+            e.preventDefault();
+            alert('Please select a reason before continuing.');
+        }
+    };
+</script>
+
 {% endblock %}

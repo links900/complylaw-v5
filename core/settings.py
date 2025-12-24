@@ -276,7 +276,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ========================= LOGGING in debug.log FILE =========================
-'''
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -324,6 +324,10 @@ LOGGING = {
         },
     },
 }
+
+'''
+
+
 # ========================= DYNAMIC SITE INFO =========================
 SITE_NAME = os.getenv("SITE_NAME", "ComplyLaw")
 SITE_DOMAIN = os.getenv(
