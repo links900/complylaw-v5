@@ -1,8 +1,9 @@
+# billing/views.py
 import stripe
 import logging
 import secrets
 import string
-
+from django.urls import reverse
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
@@ -140,19 +141,26 @@ def create_portal_session(request):
     if not request.user.stripe_customer_id:
         return redirect("billing:pricing")
 
+    # Dynamically build the return URL based on your URL names
+    # This will resolve to "/billing/" based on your current URLconf
+    relative_return_url = reverse("billing:dashboard")
+    
     DOMAIN = settings.SITE_DOMAIN
     protocol = "https" if not ("localhost" in DOMAIN or "127.0.0.1" in DOMAIN) else "http"
+    
+    # Construct the full absolute URL
+    return_url = f"{protocol}://{DOMAIN}{relative_return_url}"
     
     try:
         session = stripe.billing_portal.Session.create(
             customer=request.user.stripe_customer_id,
-            return_url=f"{protocol}://{DOMAIN}/billing/dashboard/",
+            return_url=return_url,
         )
         return redirect(session.url, code=303)
     except Exception as e:
         logger.error(f"Portal Error: {e}")
+        # Using name-based redirect here too for safety
         return redirect("billing:dashboard")
-
 # ------------------------------------------------------------------
 # Webhooks
 # ------------------------------------------------------------------
