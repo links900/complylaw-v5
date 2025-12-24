@@ -93,6 +93,7 @@ def success(request):
 # ------------------------------------------------------------------
 # Billing Dashboard
 # ------------------------------------------------------------------
+
 @login_required
 def billing_dashboard(request):
     """SaaS Standard: Fetch live subscription status and billing history."""
@@ -111,22 +112,31 @@ def billing_dashboard(request):
             if customer.subscriptions.data:
                 sub = customer.subscriptions.data[0]
                 plan_id = getattr(sub.plan, 'id', None)
+                
+                # Determine plan name
                 plan_name = "Professional" if plan_id == settings.STRIPE_PRICE_PRO else "Basic"
                 
-                period_end = getattr(sub, 'current_period_end', None)
+                # Convert Unix timestamp to Python Datetime
+                period_end_unix = getattr(sub, 'current_period_end', None)
+                period_end_date = datetime.datetime.fromtimestamp(period_end_unix) if period_end_unix else None
+                
                 cancel_at_end = getattr(sub, 'cancel_at_period_end', False)
                 
                 subscription_data = {
                     "status": sub.status,
                     "plan_name": plan_name,
                     "amount": f"${sub.plan.amount / 100:.2f}",
-                    "current_period_end": period_end * 1000 if period_end else None,
+                    "current_period_end": period_end_date,  # Now a datetime object
                     "cancel_at_period_end": cancel_at_end,
                 }
 
             # 2. Fetch Billing History
             stripe_invoices = stripe.Invoice.list(customer=user.stripe_customer_id, limit=12)
             invoices = stripe_invoices.data
+
+            # Convert all invoice timestamps to datetime objects for the template
+            for inv in invoices:
+                inv.created = datetime.datetime.fromtimestamp(inv.created)
 
         except stripe.error.StripeError as e:
             logger.error(f"Stripe Error: {e}")
