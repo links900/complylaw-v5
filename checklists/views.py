@@ -9,11 +9,13 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
 from django.db import transaction
-
-# Model Imports
 from scanner.models import ScanResult  
 from reports.models import ComplianceReport
 from .models import ChecklistSubmission, ChecklistResponse, EvidenceFile, ChecklistTemplate
+from users.models import FirmProfile
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+
 
 # --- 1. CORE WIZARD VIEWS ---
 
@@ -330,3 +332,22 @@ def delete_evidence(request, evidence_id):
 
     evidence.delete()
     return HttpResponse("")
+    
+########   
+# CHECKLIST TOP simple and detailed checklist settings
+################# 
+@login_required
+@require_POST
+def update_scan_mode(request):
+    mode = request.POST.get('scan_mode')
+    if mode in ['simple', 'detailed'] and hasattr(request.user, 'firmprofile'):
+        profile = request.user.firmprofile
+        profile.scan_mode = mode
+        profile.save()
+        
+        # We return a 204 No Content because the UI updates via Alpine.js 
+        # or we can return a trigger to refresh the checklist items
+        response = HttpResponse(status=204)
+        response["HX-Refresh"] = "true"  # Force refresh to show/hide detailed fields
+        return response
+    return HttpResponse(status=400)

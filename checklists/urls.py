@@ -27,4 +27,6 @@ urlpatterns = [
     path('progress/<uuid:submission_id>/', views.get_progress, name='get_progress'),
     path('complete/<uuid:submission_id>/', views.complete_audit, name='complete_audit'),
     path('generate-pdf/<uuid:pk>/', views.generate_checklist_pdf, name='generate_checklist_pdf'),
+    
+    path('update-scan-mode/', views.update_scan_mode, name='update_scan_mode'),
 ]
