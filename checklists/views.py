@@ -63,6 +63,16 @@ class ChecklistWizardView(ListView):
     def get_queryset(self):
         scan_id_str = self.kwargs.get('scan_id')
         scan_obj = get_object_or_404(ScanResult, scan_id=scan_id_str)
+        
+        # Get the firm and their active standard
+        firm = getattr(self.request.user, 'firmprofile', None)
+        if not firm:
+            return ChecklistResponse.objects.none()
+
+        selected_standard = firm.active_standard
+
+        
+        
         submission = ChecklistSubmission.objects.filter(scan=scan_obj).first()
 
         # 1. Create submission if it doesn't exist
@@ -74,7 +84,14 @@ class ChecklistWizardView(ListView):
                 )
                 
                 report, _ = ComplianceReport.objects.get_or_create(scan=scan_obj)
-                templates = ChecklistTemplate.objects.filter(active=True)
+                #templates = ChecklistTemplate.objects.filter(active=True)
+                # --- MODIFIED LINE BELOW ---
+                # Filter templates by the standard selected in Firm Settings
+                templates = ChecklistTemplate.objects.filter(
+                    active=True, 
+                    standard__iexact=selected_standard
+                )
+                # ---------------------------
                 
                 responses = [
                     ChecklistResponse(

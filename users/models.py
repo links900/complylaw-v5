@@ -8,14 +8,38 @@ from auditlog.registry import auditlog
 from django.conf import settings
 from django.core.validators import RegexValidator
 
+# 1. Define choices at the top of the file so all models can see them
+SUBSCRIPTION_CHOICES = [
+    ('trial', 'Trial'),
+    ('basic', 'Basic'),
+    ('pro', 'Professional'),
+    ('enterprise', 'Enterprise'),
+]
+
+class RegulatoryStandard(models.Model):
+    name = models.CharField(max_length=50, unique=True) # e.g., "GDPR", "SOC2"
+    
+    def __str__(self):
+        return self.name
+
+class TierStandard(models.Model):
+    tier = models.CharField(max_length=20, choices=SUBSCRIPTION_CHOICES, unique=True)
+    standards = models.ManyToManyField(RegulatoryStandard, blank=True)
+
+    def __str__(self):
+        return f"Defaults for {self.get_tier_display()}"
+
+
 class FirmProfile(models.Model):
     
+    '''
     SUBSCRIPTION_CHOICES = [
         ('trial', 'Trial'),
         ('basic', 'Basic'),
         ('pro', 'Professional'),
         ('enterprise', 'Enterprise'),
     ]
+    '''
     
     firm_name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
@@ -29,6 +53,8 @@ class FirmProfile(models.Model):
     )
     logo = models.ImageField(upload_to='logos/', null=True, blank=True)
     address = EncryptedTextField(blank=True)
+    # Manual overrides/additions for this specific firm
+    additional_standards = models.ManyToManyField(RegulatoryStandard, blank=True, related_name="specific_firms")
     
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -96,7 +122,20 @@ class FirmProfile(models.Model):
         except Exception as e:
             print(f"Error seeding {command_name}: {e}")
             return False
-
+    
+    def get_available_standards(self):
+        """
+        Combines Tier defaults + Manual overrides
+        """
+        # Get defaults for the tier
+        tier_defaults = TierStandard.objects.filter(tier=self.subscription_tier).first()
+        defaults = tier_defaults.standards.all() if tier_defaults else RegulatoryStandard.objects.none()
+        
+        # Combine with specific additions
+        return (defaults | self.additional_standards.all()).distinct()
+    
+    
+    
 class UserAccount(AbstractUser):
     ROLE_CHOICES = [('owner', 'Owner'), ('viewer', 'Viewer')]
     stripe_customer_id = models.CharField(max_length=255, blank=True, null=True)
@@ -105,6 +144,7 @@ class UserAccount(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='viewer')
     mfa_secret = EncryptedCharField(max_length=255, null=True, blank=True)
     last_scan_at = models.DateTimeField(null=True, blank=True)
+
 
 auditlog.register(FirmProfile)
 auditlog.register(UserAccount)

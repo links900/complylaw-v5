@@ -1,5 +1,4 @@
 # checklists/services.py
-#checklists\services.py
 
 
 from .models import ChecklistSubmission

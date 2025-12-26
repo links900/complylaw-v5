@@ -124,7 +124,7 @@ def run_compliance_scan(self, scan_id):
 
     # === Run Tests ===
     external_results = connect_to_external_scanner(domain)
-    _update_scan(scan, progress=5, step="Connecting...", log_buffer=log_buffer)
+    _update_scan(scan, progress=1, step="Scan Started...", log_buffer=log_buffer)
 
     for idx, (test_name, test_func) in enumerate(selected_tests):
         progress = min(95, 5 + int((idx + 1) * progress_per_test))

@@ -85,8 +85,10 @@ class FirmSettingsView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['firm'] = self.get_object() 
+        firm = self.get_object() 
+        context['firm'] = firm
         
+        '''
         # Logic to find available seed commands for standards
         commands_path = os.path.join(settings.BASE_DIR, 'checklists', 'management', 'commands')
         standards = []
@@ -96,6 +98,32 @@ class FirmSettingsView(LoginRequiredMixin, UpdateView):
                     standards.append(filename.replace("seed_", "").replace(".py", "").upper())
         
         context['available_standards'] = sorted(list(set(standards))) if standards else ['GDPR']
+        '''
+              
+        
+        # 1. Get the QuerySet from the model method
+        # This calls the method we added to FirmProfile that checks Tiers + Manual Additions
+        available_db_standards = firm.get_available_standards()
+        
+        
+        # 2. Convert to a list of UPPERCASE strings
+        # We use .name because available_db_standards is a list of RegulatoryStandard objects
+        standards_list = [s.name.upper() for s in available_db_standards]
+        
+        # 3. Sort and pass to context
+        context['available_standards'] = sorted(list(set(standards_list)))
+        
+       
+        
+        # 3. Sort and pass to context
+        final_standards = sorted(list(set(standards_list)))
+        
+        # DEBUG: Uncomment the line below to see if data is hitting the view
+        # print(f"DEBUG: Standards for {firm.firm_name} (Tier: {firm.subscription_tier}): {final_standards}")
+        #if not context['available_standards']:
+        #    context['available_standards'] = [] # Default is null as requested
+
+        context['available_standards'] = final_standards
         return context
 
 
