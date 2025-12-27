@@ -60,34 +60,52 @@
 		</div>
 		
 		
-		<div class="flex justify-center mb-4 no-print"> <div class="inline-flex p-1 bg-gray-100 rounded-xl border border-gray-200 shadow-inner">
+		<div class="flex flex-col items-center mb-10 no-print">
+			<div class="inline-flex p-1.5 bg-gray-100 rounded-2xl border-2 border-gray-200 shadow-sm transition-all hover:border-indigo-100">
 				<form hx-post="{% url 'checklists:update_scan_mode' %}"  
 					  hx-trigger="change"  
-					  class="flex items-center gap-1">
+					  class="flex items-center gap-1.5">
 					{% csrf_token %}
 					
 					<label class="relative flex items-center cursor-pointer">
 						<input type="radio" name="scan_mode" value="simple" class="peer sr-only"  
 							   {% if request.user.firmprofile.scan_mode == 'simple' %}checked{% endif %}>
-						<span class="px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all
-									 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm
+						<span class="px-7 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300
+									 flex items-center gap-2
+									 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-md peer-checked:ring-1 peer-checked:ring-black/5
 									 text-gray-400 hover:text-gray-600">
-							Simple Mode
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16m-7 6h7"></path>
+							</svg>
+							Simple
 						</span>
 					</label>
 
 					<label class="relative flex items-center cursor-pointer">
 						<input type="radio" name="scan_mode" value="detailed" class="peer sr-only"
 							   {% if request.user.firmprofile.scan_mode == 'detailed' %}checked{% endif %}>
-						<span class="px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all
-									 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm
+						<span class="px-7 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300
+									 flex items-center gap-2
+									 peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:shadow-lg peer-checked:shadow-indigo-200
 									 text-gray-400 hover:text-gray-600">
-							Detailed Mode
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+							</svg>
+							Detailed
 						</span>
 					</label>
 				</form>
 			</div>
+			
+			<div class="mt-3 flex items-center gap-2">
+				<span class="w-1.5 h-1.5 rounded-full {% if request.user.firmprofile.scan_mode == 'detailed' %}bg-indigo-600 animate-pulse{% else %}bg-gray-400{% endif %}"></span>
+				<span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter">
+					Currently viewing: {{ request.user.firmprofile.scan_mode }} interface
+				</span>
+			</div>
 		</div>
+
+
 
 		<div class="relative h-0"> 
 			<div id="global-sync-indicator" class="absolute left-0 -top-2 flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full border border-green-100 opacity-0 transition-opacity duration-500">

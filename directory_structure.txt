@@ -1,4 +1,4 @@
-complylaw-v4/
+complylaw-v5/
 +-- .gitignore
 +-- Dockerfile
 +-- Procfile
@@ -8,10 +8,16 @@ complylaw-v4/
 |   +-- __init__.py
 |   +-- admin.py
 |   +-- apps.py
+|   +-- management
+|   |   +-- __init__.py
+|   |   `-- commands
+|   |       +-- __init__.py
+|   |       `-- export_churn.py
 |   +-- models.py
 |   +-- tests.py
 |   +-- urls.py
 |   `-- views.py
++-- check_duplicates.py
 +-- checklists
 |   +-- __init__.py
 |   +-- admin.py
@@ -20,12 +26,26 @@ complylaw-v4/
 |   |   +-- __init__.py
 |   |   `-- commands
 |   |       +-- __init__.py
-|   |       `-- seed_gdpr_checklist.py
+|   |       +-- init_standards.py
+|   |       +-- seed_ccpa.py
+|   |       +-- seed_cmmc.py
+|   |       +-- seed_fedramp.py
+|   |       +-- seed_ffiec.py
+|   |       +-- seed_gdpr.py
+|   |       +-- seed_hipaa.py
+|   |       +-- seed_iso27001.py
+|   |       +-- seed_nist_800_53.py
+|   |       +-- seed_nist_csf.py
+|   |       +-- seed_pci_dss.py
+|   |       +-- seed_soc2.py
+|   |       +-- seed_tprm.py
+|   |       `-- sync_standards.py
 |   +-- models.py
 |   +-- services.py
 |   +-- signals.py
 |   +-- templatetags
 |   |   +-- __init__.py
+|   |   +-- dict_utils.py
 |   |   `-- math_filters.py
 |   +-- tests.py
 |   +-- urls.py
@@ -52,31 +72,34 @@ complylaw-v4/
 +-- directory_structure.txt
 +-- manage.py
 +-- media
-|   +-- evidence
-|   |   `-- 2025
-|   |       `-- 12
-|   |           `-- 20
-|   |               `-- tests.py
 |   +-- logos
-|   |   `-- AI_cheatsheet.jpeg
+|   |   `-- 133834255381770308.jpg
 |   `-- reports
 |       `-- pdfs
-|           +-- Compliance_Report_alhambra-solutions.com_8edd505e.pdf
-|           +-- Compliance_Report_smithlaw.com_9d11b9cb.pdf
-|           +-- report_1_abc.com.pdf
-|           +-- report_1_abc_SrMCkfl.com.pdf
-|           +-- report_24_alhambra-solutions.com.pdf
-|           +-- report_24_alhambra-solutions_rTjrKeH.com.pdf
-|           +-- report_25_smithlaw.com.pdf
-|           +-- report_25_smithlaw_gSwCNln.com.pdf
-|           +-- report_26_smithlaw.com.pdf
-|           +-- report_26_smithlaw_rtUaPxy.com.pdf
-|           +-- report_27_alhambra-solutions.com.pdf
-|           +-- report_27_alhambra-solutions_kqddTPF.com.pdf
-|           +-- report_28_alhambra-solutions.com.pdf
-|           +-- report_28_alhambra-solutions_kxIexib.com.pdf
-|           +-- report_2_abc.com.pdf
-|           `-- report_2_abc_0C86EKO.com.pdf
+|           +-- Compliance_Report_alhambra-solutions.com_e8cac2b3.pdf
+|           +-- Compliance_Report_alhambra-solutions.com_f27c4c2c.pdf
+|           +-- report_1_alhambra-solutions.com.pdf
+|           +-- report_1_alhambra-solutions_FaMon20.com.pdf
+|           +-- report_1_alhambra-solutions_oG1iCZp.com.pdf
+|           +-- report_1_alhambra-solutions_uQJPmzj.com.pdf
+|           +-- report_2_alhambra-solutions.com.pdf
+|           +-- report_2_alhambra-solutions_KfaljJx.com.pdf
+|           +-- report_2_alhambra-solutions_RrjUBZC.com.pdf
+|           +-- report_2_alhambra-solutions_apqF8as.com.pdf
+|           +-- report_3_alhambra-solutions.com.pdf
+|           +-- report_3_alhambra-solutions_HqoyX4K.com.pdf
+|           +-- report_4_alhambra-solutions.com.pdf
+|           +-- report_4_alhambra-solutions_u6ITOdP.com.pdf
+|           +-- report_5_alhambra-solutions.com.pdf
+|           +-- report_5_alhambra-solutions_DLJ9Pgo.com.pdf
+|           +-- report_5_alhambra-solutions_I8VPhTb.com.pdf
+|           +-- report_5_alhambra-solutions_t86lTX5.com.pdf
+|           +-- report_6_alhambra-solutions.com.pdf
+|           +-- report_6_alhambra-solutions_z7EJt3I.com.pdf
+|           +-- report_7_alhambra-solutions.com.pdf
+|           +-- report_7_alhambra-solutions_K0bXi4a.com.pdf
+|           +-- report_8_alhambra-solutions.com.pdf
+|           `-- report_8_alhambra-solutions_WuSuPu6.com.pdf
 +-- railway.json
 +-- railway.worker.json
 +-- render-build.sh
@@ -85,7 +108,12 @@ complylaw-v4/
 |   +-- __init__.py
 |   +-- admin.py
 |   +-- apps.py
-|   +-- models - Original.py
+|   +-- compliance_logic.py
+|   +-- management
+|   |   +-- __init__.py
+|   |   `-- commands
+|   |       +-- __init__.py
+|   |       `-- generate_audit.py
 |   +-- models.py
 |   +-- narrative.py
 |   +-- tasks.py
@@ -325,29 +353,15 @@ complylaw-v4/
 |   |   +-- password_reset_from_key_done.html
 |   |   +-- signup.html
 |   |   `-- verification_sent.html
-|   +-- account- old
-|   |   +-- base_account.html
-|   |   +-- confirm-email.html
-|   |   +-- email
-|   |   |   +-- password_reset_key_message.txt
-|   |   |   `-- password_reset_key_subject.txt
-|   |   +-- email_confirm.html
-|   |   +-- email_confirmation_message.txt
-|   |   +-- email_confirmation_sent.html
-|   |   +-- email_confirmation_success.html
-|   |   +-- login.html
-|   |   +-- password_change.html
-|   |   +-- password_reset.html
-|   |   +-- password_reset_complete.html
-|   |   +-- password_reset_confirm.html
-|   |   +-- password_reset_done.html
-|   |   +-- password_reset_from_key.html
-|   |   +-- password_reset_from_key_done.html
-|   |   +-- signup.html
-|   |   `-- verification_sent.html
+|   +-- admin
+|   |   `-- reports
+|   |       `-- bulk_add_standard.html
 |   +-- base.html
 |   +-- billing
+|   |   +-- dashboard.html
 |   |   +-- pricing.html
+|   |   +-- snippets
+|   |   |   `-- feature_item.html
 |   |   `-- success.html
 |   +-- checklists
 |   |   +-- compliance_dashboard.html
@@ -358,16 +372,24 @@ complylaw-v4/
 |   |   |   +-- progress_bar.html
 |   |   |   +-- save_status.html
 |   |   |   `-- status_buttons.html
+|   |   +-- pdf_report_template.html
 |   |   +-- risk_roadmap.html
-|   |   +-- wizard - two buttons footer.html
+|   |   +-- submission_list.html
 |   |   `-- wizard.html
 |   +-- dashboard
+|   |   +-- home - Copy.html
 |   |   +-- home.html
+|   |   +-- public_home - Copy.html
 |   |   `-- public_home.html
+|   +-- emails
+|   |   +-- retention_discount.html
+|   |   +-- retention_general.html
+|   |   `-- welcome.html
 |   +-- reports
+|   |   +-- audit_report_v2.html
 |   |   +-- gdpr
 |   |   |   `-- GDPR Compliance Statement templete.html
-|   |   +-- pdf_template -old.html
+|   |   +-- international_audit_pdf.html
 |   |   +-- pdf_template.html
 |   |   +-- pdf_template_enterprise.html
 |   |   +-- pdf_template_free.html
@@ -388,6 +410,7 @@ complylaw-v4/
 |   |   |   `-- stat_card.html
 |   |   +-- scan_list.html
 |   |   +-- scan_result.html
+|   |   +-- scan_status - Working without top menu.html
 |   |   `-- scan_status.html
 |   `-- users
 |       +-- firm_settings.html

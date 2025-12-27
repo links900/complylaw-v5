@@ -13,7 +13,8 @@
   
  <p class="mt-4 text-gray-600 leading-relaxed">
   {% if email %}
-    We have sent you an email with a link to verify your address <span class="font-bold text-indigo-600">{{ email }}</span>.
+    We have sent you an email with a link to verify your address <span class="font-bold text-indigo-600">{% if user.is_authenticated %}
+    {{ user.email }} {% else %}  your email address {% endif %}</span>.
   {% else %}
     We have sent an activation link to your registered email address.
   {% endif %}

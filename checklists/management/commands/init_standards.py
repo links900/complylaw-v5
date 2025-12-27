@@ -1,3 +1,4 @@
+# checklists/management/commands/init_standards.py
 from django.core.management.base import BaseCommand
 from users.models import RegulatoryStandard, TierStandard, SUBSCRIPTION_CHOICES
 

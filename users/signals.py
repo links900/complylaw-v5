@@ -13,3 +13,14 @@ def update_site(sender, **kwargs):
             "name": settings.SITE_NAME,
         },
     )
+
+
+@receiver(post_save, sender=UserAccount)
+def create_user_firm_profile(sender, instance, created, **kwargs):
+    if created:
+        # Create a blank profile for the new user
+        FirmProfile.objects.create(
+            user=instance, 
+            firm_name=f"{instance.username}'s Firm", # Default name
+            email=instance.email
+        )

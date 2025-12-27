@@ -1,3 +1,4 @@
+# checklists/views.py
 import io
 import json
 import uuid
@@ -29,7 +30,10 @@ class ChecklistWizardView(ListView):
 
     def dispatch(self, request, *args, **kwargs):
         scan_id_str = self.kwargs.get('scan_id')
-        submission = ChecklistSubmission.objects.filter(scan__scan_id=scan_id_str).first()
+        #submission = ChecklistSubmission.objects.filter(scan__scan_id=scan_id_str).first()
+        submission = ChecklistSubmission.objects.filter(
+            scan__scan_id=scan_id_str
+        ).select_related('scan').first()
         
         # If audit is already locked, prevent editing and send to report
         if submission and submission.is_locked:
@@ -42,57 +46,68 @@ class ChecklistWizardView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         scan_id_str = self.kwargs.get('scan_id')
-        submission = ChecklistSubmission.objects.filter(scan__scan_id=scan_id_str).first()
         
-        # Add submission to context
+        # Optimization: Fetch submission and scan in one join
+        submission = ChecklistSubmission.objects.filter(
+            scan__scan_id=scan_id_str
+        ).select_related('scan').first()
+        
         context['submission'] = submission
         
         if submission:
-            # Get the counts needed by progress_bar.html
-            responses = submission.responses.all()
-            total = responses.count()
-            completed = responses.exclude(status='pending').count()
+            # OPTIMIZATION: Use aggregate to get all counts in ONE query instead of two
+            from django.db.models import Count, Q
+            stats = submission.responses.aggregate(
+                total=Count('id'),
+                completed=Count('id', filter=~Q(status='pending'))
+            )
             
-            context['total_count'] = total
-            context['completed_count'] = completed
-            context['completion_percentage'] = int((completed / total) * 100) if total > 0 else 0
+            total = stats['total']
+            completed = stats['completed']
+            
+            context.update({
+                'total_count': total,
+                'completed_count': completed,
+                'completion_percentage': int((completed / total) * 100) if total > 0 else 0
+            })
             
         return context
         
     
     def get_queryset(self):
         scan_id_str = self.kwargs.get('scan_id')
-        scan_obj = get_object_or_404(ScanResult, scan_id=scan_id_str)
+        user = self.request.user
+        firm = getattr(user, 'firmprofile', None)
         
-        # Get the firm and their active standard
-        firm = getattr(self.request.user, 'firmprofile', None)
         if not firm:
             return ChecklistResponse.objects.none()
 
-        selected_standard = firm.active_standard
+        scan_obj = get_object_or_404(ScanResult, scan_id=scan_id_str)
+        selected_standard = firm.active_standard # The standard chosen in settings
 
-        
-        
-        submission = ChecklistSubmission.objects.filter(scan=scan_obj).first()
+        # LOOKUP: Find the submission matching THIS scan and THIS standard
+        submission = ChecklistSubmission.objects.filter(
+            scan=scan_obj, 
+            standard__iexact=selected_standard
+        ).first()
 
-        # 1. Create submission if it doesn't exist
+        # CREATE: If it doesn't exist for this standard, create a fresh one
         if not submission:
             with transaction.atomic():
                 submission = ChecklistSubmission.objects.create(
                     scan=scan_obj,
-                    firm=self.request.user.firm
+                    firm=firm,
+                    standard=selected_standard # Save the standard string
                 )
                 
-                report, _ = ComplianceReport.objects.get_or_create(scan=scan_obj)
-                #templates = ChecklistTemplate.objects.filter(active=True)
-                # --- MODIFIED LINE BELOW ---
-                # Filter templates by the standard selected in Firm Settings
+                # Fetch templates specifically for the active standard
                 templates = ChecklistTemplate.objects.filter(
                     active=True, 
                     standard__iexact=selected_standard
                 )
-                # ---------------------------
                 
+                # Generate the responses
+                report, _ = ComplianceReport.objects.get_or_create(scan=scan_obj)
                 responses = [
                     ChecklistResponse(
                         submission=submission,
@@ -103,29 +118,11 @@ class ChecklistWizardView(ListView):
                 ]
                 ChecklistResponse.objects.bulk_create(responses)
 
-        # 2. Find the most recent previous LOCKED submission for HINT logic
-        previous_submission = ChecklistSubmission.objects.filter(
-            firm=self.request.user.firm,
-            is_locked=True
-        ).exclude(id=submission.id).order_by('-created_at').first()
-
-        prev_answers = {}
-        if previous_submission:
-            prev_answers = {
-                resp.template_id: resp.status 
-                for resp in previous_submission.responses.all()
-            }
-
-        # 3. Get the current responses and inject hints dynamically
-        qs = submission.responses.select_related('template')\
+        # Return the responses for this specific standard submission
+        return submission.responses.select_related('template')\
                                    .prefetch_related('evidence_files')\
-                                   .order_by('template__code')
+                                   .order_by('template__code')    
         
-        for r in qs:
-            r.hint_status = prev_answers.get(r.template_id)
-
-        return qs
-
 
 class UpdateResponseView(View):
     """
