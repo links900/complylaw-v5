@@ -20,7 +20,7 @@ class Command(BaseCommand):
             writer.writerow([f.replace('_', ' ').title() for f in fields])
             
             # Write Data
-            feedbacks = ChurnFeedback.objects.all().order_ some_by('-created_at')
+            feedbacks = ChurnFeedback.objects.all().order_by('-created_at')
             for fb in feedbacks:
                 writer.writerow([
                     fb.created_at.strftime('%Y-%m-%d %H:%M'),

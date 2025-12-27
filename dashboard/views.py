@@ -12,6 +12,8 @@ from checklists.models import ChecklistSubmission
 # Models from current app
 from .models import Alert
 
+
+
 def public_home(request):
     """
     Landing page for non-logged-in users.
@@ -22,6 +24,7 @@ def public_home(request):
     return render(request, 'dashboard/public_home.html')
 
 
+
 class DashboardHomeView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard/home.html'
     
@@ -29,62 +32,70 @@ class DashboardHomeView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        # Check the ForeignKey field first
-        firm = user.firm
-        
-        # If ForeignKey is empty, try the OneToOne reverse relationship safely
+        # 1. Resolve Firm safely
+        firm = getattr(user, 'firm', None)
         if not firm:
             firm = getattr(user, 'firmprofile', None)
         
+        # 2. Pre-define default values to ensure no variable is "missing"
+        context.update({
+            'firm': firm,
+            'last_scan': None,
+            'recent_scans': [],
+            'top_priority_issue': None,
+            'submission': None,
+            'submission_id': None,
+            'completion_percentage': 0,
+            'unread_alerts': 0,
+            'total_count': 0,      
+            'completed_count': 0,
+        })
+
         if firm:
-            # 1. Get Automated Scans
-            recent_scans = ScanResult.objects.filter(firm=firm).order_by('-scan_date')[:5]
-            last_scan = recent_scans.first()
+            # Automated Scans: Force evaluation with list() to avoid lookup errors
+            scans_qs = ScanResult.objects.filter(firm=firm).order_by('-scan_date')[:5]
+            recent_scans = list(scans_qs)
+            last_scan = recent_scans[0] if recent_scans else None
             
-            # 2. Extract Top Priority Issue
+            
+            
+            # Extract Top Priority Issue safely
             top_issue = None
             if last_scan:
-                vulnerabilities = last_scan.get_vulnerabilities()
-                top_issue = next(
-                    (v for v in vulnerabilities if str(v.get('severity', '')).upper() in ['HIGH', 'CRITICAL', '8', '9', '10']), 
-                    None
-                )
+                # Assuming get_vulnerabilities returns a list of dicts
+                vulnerabilities = last_scan.get_vulnerabilities() or []
+                for v in vulnerabilities:
+                    sev = str(v.get('severity', '')).upper()
+                    if sev in ['HIGH', 'CRITICAL', '8', '9', '10']:
+                        top_issue = v
+                        break
 
-            # 3. Manual Audit (Roadmap) Logic - UPDATED TO INCLUDE COUNTS
+            # Manual Audit (Roadmap) Logic
             last_sub = ChecklistSubmission.objects.filter(firm=firm).order_by('-created_at').first()
             percentage = 0
-            total_count = 0      # Initialize variables
-            completed_count = 0
-            
+            total = 0
+            completed = 0
             if last_sub:
                 responses = last_sub.responses.all()
-                total_count = responses.count()
-                completed_count = responses.exclude(status='pending').count()
-                percentage = int((completed_count / total_count) * 100) if total_count > 0 else 0
+                total = responses.count()
+                completed = responses.exclude(status='pending').count()
+                percentage = int((completed / total) * 100) if total > 0 else 0
 
+            # Update context with real data
             context.update({
                 'last_scan': last_scan,
-                'firm': firm,
                 'recent_scans': recent_scans,
                 'top_priority_issue': top_issue,
                 'submission': last_sub,
+                'submission_id': last_sub.id if last_sub else None,
                 'completion_percentage': percentage,
-                'total_count': total_count,          # ADD THIS
-                'completed_count': completed_count,  # ADD THIS
                 'unread_alerts': Alert.objects.filter(firm=firm, read=False).count(),
-            })
-        else:
-            context.update({
-                'firm': None,
-                'recent_scans': [],
-                'unread_alerts': 0,
-                'completion_percentage': 0,
-                'total_count': 0,
-                'completed_count': 0,
+                'total_count': total,       # <--- ADD THIS
+                'completed_count': completed, # <--- ADD THIS
+                            
             })
             
         return context
-
 
 class AlertListView(LoginRequiredMixin, ListView):
     """

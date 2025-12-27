@@ -3,6 +3,8 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.db.models.signals import post_save
+from .models import UserAccount, FirmProfile
 
 @receiver(post_migrate)
 def update_site(sender, **kwargs):
@@ -14,13 +16,3 @@ def update_site(sender, **kwargs):
         },
     )
 
-
-@receiver(post_save, sender=UserAccount)
-def create_user_firm_profile(sender, instance, created, **kwargs):
-    if created:
-        # Create a blank profile for the new user
-        FirmProfile.objects.create(
-            user=instance, 
-            firm_name=f"{instance.username}'s Firm", # Default name
-            email=instance.email
-        )

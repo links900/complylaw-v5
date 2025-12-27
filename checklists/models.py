@@ -38,11 +38,28 @@ class ChecklistTemplate(models.Model):
 
 class ChecklistSubmission(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    scan = models.OneToOneField(ScanResult, on_delete=models.CASCADE, related_name='manual_audit')
+    
+    # CHANGE: From OneToOneField to ForeignKey
+    # This allows Scan #8 to have Submission A, Submission B, etc.
+    scan = models.ForeignKey(
+        ScanResult, 
+        on_delete=models.CASCADE, 
+        related_name='manual_audits'
+    )
+    
+    # ADD: This identifies which standard this specific submission belongs to
+    standard = models.CharField(max_length=50, db_index=True)
+    
+       
     firm = models.ForeignKey(FirmProfile, on_delete=models.CASCADE)
     completed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     is_locked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        # IMPORTANT: This ensures a scan cannot have TWO submissions 
+        # for the SAME standard (e.g., two GDPR audits for one scan)
+        unique_together = ('scan', 'standard')
 
     def __str__(self):
         return f"Audit: {self.scan.domain} ({self.created_at.date()})"
@@ -149,3 +166,5 @@ class EvidenceFile(models.Model):
     filename = models.CharField(max_length=255)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    
+

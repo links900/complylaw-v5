@@ -35,7 +35,7 @@
             <header class="text-center mb-10">
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 1">Tell us about your firm</h2>
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 2">Regional & Data Preferences</h2>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 3">Select Compliance Standards</h2>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 3">Primary Framework</h2>
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 4">Branding & Final Touches</h2>
                 <p class="text-slate-500 mt-2">Configure your workspace for global enterprise standards.</p>
             </header>
@@ -125,67 +125,116 @@
                     </div>
                 </div>
 
-                <div x-show="step === 3" x-transition.opacity>
-					<div class="space-y-8">
-						
-						<div class="hidden">
-							{{ form.selected_frameworks }}
-						</div>
-
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-							<label class="relative flex p-4 border-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-all group">
-								<input type="checkbox" value="iso27001" class="framework-ref sr-only peer">
-								<div class="flex flex-col">
-									<span class="text-sm font-extrabold text-slate-900">ISO/IEC 27001</span>
-									<span class="text-xs text-slate-500 mt-1">Information Security Mgmt</span>
-									<span class="mt-3 inline-flex items-center text-[10px] font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded w-fit">Enterprise</span>
-								</div>
-								<div class="ml-auto opacity-0 peer-checked:opacity-100 text-indigo-600 transition-opacity">
-									<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-								</div>
-								<div class="absolute inset-0 border-2 border-transparent peer-checked:border-indigo-600 rounded-xl pointer-events-none"></div>
-							</label>
-
-							<label class="relative flex p-4 border-2 rounded-xl cursor-pointer hover:bg-slate-50 transition-all">
-								<input type="checkbox" value="gdpr" class="framework-ref sr-only peer">
-								<div class="flex flex-col">
-									<span class="text-sm font-extrabold text-slate-900">GDPR Compliance</span>
-									<span class="text-xs text-slate-500 mt-1">Data Protection & Privacy</span>
-									<span class="mt-3 inline-flex items-center text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded w-fit">Professional</span>
-								</div>
-								<div class="ml-auto opacity-0 peer-checked:opacity-100 text-indigo-600 transition-opacity">
-									<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-								</div>
-								<div class="absolute inset-0 border-2 border-transparent peer-checked:border-indigo-600 rounded-xl pointer-events-none"></div>
-							</label>
-						</div>
-
-						<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-							<label class="block text-sm font-bold text-slate-700 mb-4 text-center">Audit Rigor Level</label>
-							<div class="flex bg-white p-1 rounded-lg border border-slate-200 max-w-sm mx-auto shadow-sm">
-								<button type="button" @click="auditType = 'simple'" :class="auditType === 'simple' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-900'" class="flex-1 py-2 text-xs font-bold rounded-md transition-all">
-									Simple Checklist
-								</button>
-								<button type="button" @click="auditType = 'detailed'" :class="auditType === 'detailed' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-900'" class="flex-1 py-2 text-xs font-bold rounded-md transition-all">
-									Detailed Audit
-								</button>
+				<div x-show="step === 3" x-transition.opacity 
+					 x-data="{ selectedStandard: '{{ available_standards.0.name }}' }">">
+					
+					<div class="space-y-6">
+						<div class="flex items-center justify-between border-b border-slate-100 pb-4">
+							<div>
+								<h3 class="text-lg font-bold text-slate-900">Primary Compliance Framework</h3>
+								<p class="text-xs text-slate-500">Select the main standard for your initial audit checklist.</p>
 							</div>
-							<div class="mt-4 text-center">
-								<p x-show="auditType === 'simple'" class="text-[11px] text-slate-500">Fast "Yes/No" verification. Best for small firms and internal self-assessments.</p>
-								<p x-show="auditType === 'detailed'" class="text-[11px] text-slate-500"><strong>Enterprise Standard:</strong> Requires PDF evidence uploads and multi-step stakeholder approval.</p>
+							<div class="text-right">
+								<span class="text-[10px] font-black text-amber-600 uppercase tracking-widest block">Subscription Tier</span>
+								<span class="text-sm font-bold text-slate-700 uppercase">{{ user_tier }}</span>
+							</div>
+						</div>
+
+						<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+							{% for standard in available_standards %}
+							{% with std_id=standard.name|lower|cut:" " %}
+							<label for="std_{{ std_id }}" 
+								   class="relative flex items-center p-4 border rounded-xl cursor-pointer transition-all group bg-white shadow-sm"
+								   :class="selectedStandard === '{{ standard.name }}' ? 'border-indigo-600 ring-2 ring-indigo-600/10 bg-indigo-50/30' : 'border-slate-200 hover:border-indigo-300'">
+								
+								<input type="radio" 
+									   id="std_{{ std_id }}"
+									   name="active_standard" 
+									   value="{{ standard.name }}" 
+									   x-model="selectedStandard"
+									   class="sr-only"
+									   required>
+								
+								<div class="flex flex-col flex-1 pr-4">
+									<div class="flex items-center gap-2">
+										<span class="text-sm font-bold" :class="selectedStandard === '{{ standard.name }}' ? 'text-indigo-700' : 'text-slate-900'">
+											{{ standard.name }}
+										</span>
+										<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 uppercase">
+											{{ standard.scope_tag }}
+										</span>
+									</div>
+									<p class="text-[11px] text-slate-500 leading-tight mt-1 line-clamp-2">
+										{{ standard.one_liner }}
+									</p>
+								</div>
+
+								<div class="shrink-0">
+									<div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
+										 :class="selectedStandard === '{{ standard.name }}' ? 'border-indigo-600' : 'border-slate-200'">
+										<div class="w-2.5 h-2.5 rounded-full bg-indigo-600 transition-transform"
+											 :class="selectedStandard === '{{ standard.name }}' ? 'scale-100' : 'scale-0'">
+										</div>
+									</div>
+								</div>
+							</label>
+							{% endwith %}
+							{% endfor %}
+						</div>
+
+						<div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mt-6">
+							<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+								<div>
+									<label class="block text-sm font-bold text-slate-700">Audit Rigor</label>
+									<p class="text-[11px] text-slate-500">Simple uses basic verification; Detailed requires evidence.</p>
+								</div>
+								<div class="flex bg-white p-1 rounded-lg border border-slate-200 shadow-sm shrink-0">
+									<button type="button" @click="auditType = 'simple'" :class="auditType === 'simple' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500'" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">Simple</button>
+									<button type="button" @click="auditType = 'detailed'" :class="auditType === 'detailed' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500'" class="px-4 py-1.5 text-xs font-bold rounded-md transition-all">Detailed</button>
+								</div>
 							</div>
 							<input type="hidden" name="audit_rigor" :value="auditType">
 						</div>
 						
-						<div class="space-y-2">
-							<label class="block text-sm font-bold text-slate-700">Data Retention (Days)</label>
-							{{ form.retention_days }}
-							<p class="text-xs text-slate-500">How many days should we keep your scan logs? (e.g., 30, 90, 365)</p>
+						<div class="space-y-4">
+							<div class="flex items-center justify-between">
+								<label class="block text-sm font-bold text-slate-700">Data Retention Policy</label>
+								<span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full uppercase tracking-wide">GDPR Compliant</span>
+							</div>
+
+							<div class="grid grid-cols-1 sm:grid-cols-3 gap-3" x-data="{ retention: '365' }">
+								<label class="relative flex flex-col p-4 border rounded-xl cursor-pointer transition-all hover:bg-slate-50"
+									   :class="retention === '365' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200'">
+									<input type="radio" name="retention_days" value="365" x-model="retention" class="sr-only">
+									<span class="text-lg font-bold text-slate-900">1 Year</span>
+									<span class="text-[10px] text-slate-500 uppercase font-medium">Standard</span>
+								</label>
+
+								<label class="relative flex flex-col p-4 border rounded-xl cursor-pointer transition-all hover:bg-slate-50"
+									   :class="retention === '730' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200'">
+									<input type="radio" name="retention_days" value="730" x-model="retention" class="sr-only">
+									<span class="text-lg font-bold text-slate-900">2 Years</span>
+									<span class="text-[10px] text-slate-500 uppercase font-medium">Enhanced</span>
+								</label>
+
+								<label class="relative flex flex-col p-4 border rounded-xl cursor-pointer transition-all hover:bg-slate-50"
+									   :class="retention === '2555' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50/30' : 'border-slate-200'">
+									<input type="radio" name="retention_days" value="2555" x-model="retention" class="sr-only">
+									<span class="text-lg font-bold text-slate-900">7 Years</span>
+									<span class="text-[10px] text-slate-500 uppercase font-medium">Legal/Tax</span>
+								</label>
+							</div>
+
+							<p class="text-[11px] text-slate-500 leading-relaxed italic">
+								* Evidence logs and audit trails will be cryptographically purged following the end of this period to remain compliant with Right to Erasure (GDPR Art. 17).
+							</p>
 						</div>
+
+
 					</div>
 				</div>
-
-
+							   
+				
                 <div x-show="step === 4" x-transition.opacity>
                     <div class="space-y-6">
                         <div>

@@ -16,6 +16,7 @@ from allauth.account.views import SignupView
 from .models import FirmProfile, UserAccount
 from .forms import FirmSettingsForm, FirmProfileForm
 from django.utils import timezone as django_timezone
+from django.db import transaction
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -145,24 +146,73 @@ class FirmSetupWizardView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('dashboard:home')
     
     def form_valid(self, form):
-        firm = form.save(commit=False)
-        firm.user = self.request.user
-        firm.scan_mode = 'simple'
-        firm.active_standard = 'GDPR'
-        firm.is_active = True
-        firm.save()
-        
-        # Link the user to the new firm
-        self.request.user.firm_id = firm.id
-        self.request.user.save()
-        
-        messages.success(self.request, f"Welcome to {firm.firm_name}!")
-        return super().form_valid(form)
-        
+        try:
+            with transaction.atomic():
+                # 1. Fetch the existing instance FIRST
+                firm, created = FirmProfile.objects.get_or_create(user=self.request.user)
+                
+                # 2. Re-initialize the form with the instance so Django knows it's an UPDATE
+                # and preserves fields like 'created_at'
+                form.instance = firm 
+                
+                # 3. Now save the form to the existing instance
+                updated_firm = form.save(commit=False)
+                updated_firm.user = self.request.user
+                
+                # 4. Set your defaults
+                updated_firm.scan_mode = 'simple'
+                updated_firm.is_active = True
+                updated_firm.subscription_tier = getattr(self.request.user, 'subscription_tier', 'trial')
+                
+                # Ensure we don't accidentally nullify the created_at if it's already there
+                if not updated_firm.created_at and not created:
+                    # Optional: refresh from db if you want to be extra safe
+                    firm.refresh_from_db()
+                    updated_firm.created_at = firm.created_at
+
+                # 5. Handle Framework Logic
+                updated_firm.active_standard = form.cleaned_data.get('active_standard')
+                
+                # 6. Final Save
+                updated_firm.save()
+                
+                # 7. Link User
+                if self.request.user.firm != updated_firm:
+                    self.request.user.firm = updated_firm
+                    self.request.user.save()
+                
+                if hasattr(updated_firm, 'sync_compliance_checklist'):
+                    updated_firm.sync_compliance_checklist()
+                    
+                messages.success(self.request, f"Welcome to {updated_firm.firm_name}!")
+                return HttpResponseRedirect(self.get_success_url())
+
+        except Exception as e:
+            form.add_error(None, f"Database Error: {str(e)}")
+            return self.form_invalid(form)    
+            
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['is_wizard'], context['firm'] = True, None
+        from .models import TierStandard, RegulatoryStandard
+        
+        # 1. Get tier from User (default to 'trial' if not set)
+        # Note: Ensure your UserAccount model has a subscription_tier field
+        user_tier = getattr(self.request.user, 'subscription_tier', 'trial')
+        
+        # 2. Get Standards mapped to this Tier
+        tier_defaults = TierStandard.objects.filter(tier=user_tier).first()
+        
+        # 3. Get the queryset (Tier Defaults + any global ones if needed)
+        if tier_defaults:
+            standards = tier_defaults.standards.all()
+        else:
+            standards = RegulatoryStandard.objects.all()
+
+        context['available_standards'] = standards
+        context['user_tier'] = user_tier
+        context['is_wizard'] = True
         return context
+        
 
     def get(self, request, *args, **kwargs):
         if hasattr(request.user, 'firmprofile') and request.user.firmprofile:

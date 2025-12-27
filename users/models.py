@@ -18,7 +18,8 @@ SUBSCRIPTION_CHOICES = [
 
 class RegulatoryStandard(models.Model):
     name = models.CharField(max_length=50, unique=True) # e.g., "GDPR", "SOC2"
-    
+    one_liner = models.CharField(max_length=255, help_text="Brief description")
+    scope_tag = models.CharField(max_length=50, help_text="e.g., Global, Privacy, Federal")
     def __str__(self):
         return self.name
 

@@ -81,10 +81,54 @@ class BaseFirmForm(forms.ModelForm):
             instance.save()
         return instance
 
-class FirmProfileForm(BaseFirmForm):
-    class Meta(BaseFirmForm.Meta):
-        fields = [f for f in BaseFirmForm.Meta.fields if f != 'subscription_tier']
 
+class FirmProfileForm(BaseFirmForm):
+    # Field for the wizard
+    active_standard = forms.ChoiceField(
+        label="Primary Compliance Standard",
+        help_text="Select the main framework for your first assessment."
+    )
+    
+    # Hidden field for JSON data from Step 3
+    selected_frameworks = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+    class Meta(BaseFirmForm.Meta):
+        # 1. MUST include all fields you want to render in the template
+        fields = [
+            'firm_name', 'domain', 'email', 'phone', 
+            'active_standard', 'timezone', 'currency', 'date_format',
+            'selected_frameworks', 'retention_days', 'address', 
+            'logo', 'subscription_tier'
+        ]
+        
+        # 2. Widgets must be INSIDE the Meta class
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 2}),
+            'retention_days': forms.NumberInput(attrs={'min': '1'}),
+            'subscription_tier': forms.HiddenInput(), # Hide it as we set it via context
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # 3. Dynamic Standard Loading
+        from checklists.models import ChecklistTemplate
+        db_standards = ChecklistTemplate.objects.filter(active=True)\
+            .values_list('standard', flat=True).distinct()
+        
+        self.fields['active_standard'].choices = [(s, s.upper()) for s in db_standards]
+        
+        # 4. Apply CSS consistently to all fields
+        standard_css = "w-full bg-slate-50 border border-slate-300 rounded-xl py-3 px-4 text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-medium shadow-sm"
+        
+        for name, field in self.fields.items():
+            if name not in ['logo', 'selected_frameworks']:
+                field.widget.attrs.update({'class': standard_css})
+            
+            # Ensure the address textarea isn't too huge
+            if name == 'address':
+                field.widget.attrs.update({'rows': '2', 'placeholder': 'Enter firm address...'})
+        
 class FirmSettingsForm(BaseFirmForm):
     class Meta(BaseFirmForm.Meta):
         fields = BaseFirmForm.Meta.fields + ['scan_mode', 'active_standard', 'audit_rigor']
