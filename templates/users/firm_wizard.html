@@ -17,11 +17,11 @@
             </div>
             <div class="flex flex-col items-center">
                 <div :class="step >= 2 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-400 border-slate-200'" class="w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-colors">2</div>
-                <span class="text-xs font-semibold mt-2 text-slate-600 uppercase tracking-wider">Region</span>
+                <span class="text-xs font-semibold mt-2 text-slate-600 uppercase tracking-wider">Region & Data Preferences</span>
             </div>
             <div class="flex flex-col items-center">
                 <div :class="step >= 3 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-400 border-slate-200'" class="w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-colors">3</div>
-                <span class="text-xs font-semibold mt-2 text-slate-600 uppercase tracking-wider">Compliance</span>
+                <span class="text-xs font-semibold mt-2 text-slate-600 uppercase tracking-wider">Compliance Framework</span>
             </div>
             <div class="flex flex-col items-center">
                 <div :class="step >= 4 ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-400 border-slate-200'" class="w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold transition-colors">4</div>
@@ -35,7 +35,7 @@
             <header class="text-center mb-10">
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 1">Tell us about your firm</h2>
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 2">Regional & Data Preferences</h2>
-                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 3">Primary Framework</h2>
+                <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 3">Primary Compliance Framework</h2>
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight" x-show="step === 4">Branding & Final Touches</h2>
                 <p class="text-slate-500 mt-2">Configure your workspace for global enterprise standards.</p>
             </header>
