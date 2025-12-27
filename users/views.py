@@ -147,7 +147,16 @@ class FirmSetupWizardView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         try:
+            domain = form.cleaned_data.get('domain')
+    
+            # 1. Check if domain is taken by SOMEONE ELSE
+            existing_firm = FirmProfile.objects.filter(domain=domain).first()
+            if existing_firm and existing_firm.user != self.request.user:
+                form.add_error('domain', 'This domain is already registered to another account.')
+                return self.form_invalid(form)
+                
             with transaction.atomic():
+                
                 # 1. Fetch the existing instance FIRST
                 firm, created = FirmProfile.objects.get_or_create(user=self.request.user)
                 
